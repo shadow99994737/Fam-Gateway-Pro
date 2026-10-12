@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Panel</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{--accent:#6366f1;--accent2:#8b5cf6;--ok:#16a34a;--bad:#dc2626;--line:#e2e8f0;--mute:#64748b}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f4f6fb;color:#0b1224}
+a{color:inherit}
+.hide{display:none!important}
+
+/* ---------- login screen ---------- */
+#loginView{min-height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:20px;
+background:radial-gradient(circle at 15% -10%,#1d2a5c 0%,transparent 45%),radial-gradient(circle at 110% 10%,#2a1b55 0%,transparent 40%),#070b18}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;pointer-events:none}
+.b1{width:380px;height:380px;background:#6366f1;top:-100px;left:-90px;animation:d1 20s ease-in-out infinite}
+.b2{width:340px;height:340px;background:#8b5cf6;bottom:-120px;right:-100px;animation:d2 24s ease-in-out infinite}
+@keyframes d1{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,60px)}}
+@keyframes d2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-40px)}}
+.login-wrap{position:relative;z-index:1;width:100%;max-width:400px}
+.lbrand{display:flex;align-items:center;justify-content:center;gap:10px;font-weight:800;font-size:18px;color:#fff;margin-bottom:22px}
+.lbrand .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(99,102,241,.4)}
+.login-card{background:linear-gradient(165deg,rgba(18,26,53,.9),rgba(10,18,37,.92));backdrop-filter:blur(18px);
+border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);
+padding:34px 30px;color:#fff;animation:authIn .5s cubic-bezier(.22,1,.36,1)}
+@keyframes authIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.login-card h1{margin:0 0 4px;font-size:26px;letter-spacing:-.5px;
+background:linear-gradient(135deg,#fff,#c7d2fe);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.login-card .sub{color:#9aa6c9;margin:0 0 24px;font-size:14px}
+.login-card label{display:block;font-size:13px;font-weight:700;color:#cbd5e1;margin:14px 0 6px}
+.login-card label:first-of-type{margin-top:0}
+.inp{width:100%;border:2px solid rgba(255,255,255,.12);border-radius:16px;background:rgba(255,255,255,.95);
+padding:14px 16px;font-size:16px;outline:none;transition:border-color .15s;color:#0b1224;-webkit-text-fill-color:#0b1224}
+.inp:focus{border-color:var(--accent)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:16px;
+background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;font-weight:700;font-size:16px;padding:14px;
+cursor:pointer;margin-top:20px;box-shadow:0 10px 26px rgba(99,102,241,.4);transition:transform .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:default;transform:none}
+.sp{display:inline-block;width:16px;height:16px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+.lerr{background:rgba(220,38,38,.14);border:1px solid rgba(220,38,38,.35);color:#fca5a5;border-radius:12px;
+padding:11px 14px;font-size:13.5px;margin-top:16px;display:none}
+.lerr.show{display:block}
+
+/* ---------- dashboard shell ---------- */
+#panelView header.top{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);
+display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px}
+.brand .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+display:flex;align-items:center;justify-content:center;color:#fff}
+.btn-out{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 16px;font-weight:700;
+font-size:13.5px;cursor:pointer;color:#334155}
+.wrap{max-width:1080px;margin:0 auto;padding:22px}
+.card{background:#fff;border:1px solid #eef2f7;border-radius:22px;padding:22px;margin-bottom:16px;
+box-shadow:0 6px 20px rgba(15,23,42,.05)}
+.card.flush{padding:0}
+h2{font-size:21px;margin:0}
+.muted{color:var(--mute);font-size:14px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+
+.admin-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px;background:#eef1f7;border-radius:16px;margin-bottom:16px}
+.admin-tabs button{flex:none;border:0;background:transparent;padding:11px 18px;border-radius:12px;font-weight:700;
+color:#64748b;cursor:pointer;white-space:nowrap;font-size:14.5px}
+.admin-tabs button.on{background:#fff;color:var(--accent);box-shadow:0 2px 8px rgba(15,23,42,.08)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:720px){.stat-grid{grid-template-columns:repeat(3,1fr)}}
+.mini-stat{background:#fff;border-radius:18px;border:1px solid #eef2f7;padding:17px;box-shadow:0 6px 18px rgba(15,23,42,.05)}
+.mini-stat .k{color:var(--mute);font-size:12.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.mini-stat .v{font-size:24px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
+
+.tbl-wrap{overflow-x:auto;border-radius:18px}
+.dtable{width:100%;border-collapse:collapse;font-size:14.5px}
+.dtable th{text-align:left;color:var(--mute);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.3px;
+padding:10px 14px;border-bottom:2px solid var(--line);white-space:nowrap}
+.dtable td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dtable tr:last-child td{border-bottom:0}
+.empty{padding:40px;text-align:center;color:var(--mute)}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.tag-admin{background:#eef0ff;color:#4f46e5}.tag-banned{background:#fee2e2;color:#dc2626}
+.tag-active{background:#dcfce7;color:#15803d}.tag-inactive{background:#f1f5f9;color:#64748b}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800;text-transform:capitalize}
+.b-pending{background:#fef3c7;color:#92400e}.b-success{background:#dcfce7;color:#15803d}.b-expired{background:#f1f5f9;color:#64748b}
+.irow{display:flex;gap:8px;flex-wrap:wrap}
+.btn.tiny{width:auto;padding:7px 13px;font-size:13px;margin:0;border-radius:10px;box-shadow:none}
+.btn.soft{background:#eef0ff;color:var(--accent);box-shadow:none}
+.btn.danger{background:#fee2e2;color:#dc2626}
+.searchbar{display:flex;gap:8px;margin-bottom:14px}
+.searchbar .inp{margin:0;background:#fff;border-color:var(--line);color:#0b1224}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+.swrap{display:flex;align-items:center;gap:10px;margin:14px 0}
+.switch{width:46px;height:26px;border-radius:999px;background:#e2e8f0;position:relative;cursor:pointer;flex:none;border:0}
+.switch.on{background:var(--ok)}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;
+transition:transform .18s ease;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.switch.on::after{transform:translateX(20px)}
+.load{text-align:center;color:var(--mute);padding:60px 0}
+.alert{background:#fee2e2;color:#991b1b;border-radius:14px;padding:14px 16px;font-size:14px}
+.pill{display:inline-flex;align-items:center;gap:7px;background:#fee2e2;color:#991b1b;border-radius:999px;
+padding:7px 14px;font-size:13px;font-weight:700}
+.pill.ok{background:#dcfce7;color:#15803d}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.hint{color:var(--mute);font-size:13px;margin:6px 0 0}
+.hint a{color:var(--accent);font-weight:700;text-decoration:none}
+
+/* ---------- modal ---------- */
+.modal-bg{position:fixed;inset:0;z-index:100;background:rgba(5,8,20,.6);backdrop-filter:blur(6px);
+display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .2s}
+.modal-bg.on{opacity:1}
+.modal-card{width:100%;max-width:440px;background:#fff;border-radius:24px;padding:26px 24px;position:relative;
+max-height:92vh;overflow:auto;transform:scale(.95) translateY(8px);transition:transform .2s}
+.modal-bg.on .modal-card{transform:none}
+.modal-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;border:0;
+background:#f1f5f9;color:#334155;font-size:18px;cursor:pointer}
+label{display:block;font-size:13px;font-weight:700;color:#475569;margin:14px 0 6px}
+label:first-of-type{margin-top:0}
+textarea.inp{resize:vertical;font-family:inherit}
+</style>
+</head>
+<body>
+
+<div id="loginView">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="login-wrap">
+    <div class="lbrand"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>Admin Panel</div>
+    <div class="login-card">
+      <h1>Admin Sign In</h1>
+      <p class="sub">Authorized access only. Enter your admin credentials.</p>
+      <form id="lf" novalidate>
+        <label for="lu">Username</label>
+        <input class="inp" id="lu" autocomplete="username" placeholder="Username">
+        <label for="lp">Password</label>
+        <input class="inp" id="lp" type="password" autocomplete="current-password" placeholder="Password">
+        <button class="btn" id="lbtn" type="submit">Sign In</button>
+        <div class="lerr" id="lerr"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="panelView" class="hide">
+  <header class="top">
+    <div class="brand"><div class="logo"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>Admin Panel</div>
+    <button class="btn-out" id="logoutBtn" type="button">Logout</button>
+  </header>
+  <div class="wrap">
+    <div class="card" style="padding-bottom:4px"><h2>Full Control Admin Panel</h2>
+      <div class="muted">Plans, users, orders, free trial and gateway settings - all in one place.</div></div>
+    <div class="admin-tabs" id="aTabs"></div>
+    <div id="aPane"></div>
+  </div>
+</div>
+
+<script>
+function $(s, r) { return (r || document).querySelector(s); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function inr(n) { return '\u20B9' + Number(n || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+function when(iso) { if (!iso) return '-'; try { return new Date(iso).toLocaleString('en-IN', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'}); } catch (e) { return iso; } }
+function busy(btn, on, label) { if (!btn) return; btn.disabled = on; btn.dataset.lbl = btn.dataset.lbl || btn.textContent; btn.innerHTML = on ? '<span class="sp"></span>' : (label || btn.dataset.lbl); }
+let toastT = null;
+function toast(msg, bad) {
+  let t = $('#toastEl');
+  if (!t) { t = document.createElement('div'); t.id = 'toastEl'; t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:200;padding:13px 20px;border-radius:14px;font-weight:700;font-size:14px;box-shadow:0 14px 34px rgba(0,0,0,.2);transition:opacity .2s'; document.body.appendChild(t); }
+  t.style.background = bad ? '#dc2626' : '#16a34a'; t.style.color = '#fff'; t.textContent = msg; t.style.opacity = '1';
+  clearTimeout(toastT); toastT = setTimeout(() => { t.style.opacity = '0'; }, 2600);
+}
+
+async function api(action, body, method) {
+  method = method || (body ? 'POST' : 'GET');
+  const opt = { method, credentials: 'same-origin', headers: {} };
+  if (body) { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body); }
+  const r = await fetch('/admin.php?action=' + encodeURIComponent(action), opt);
+  let d; try { d = await r.json(); } catch (e) { d = {}; }
+  if (!r.ok || d.ok === false) throw new Error(d.error || ('Request failed (' + r.status + ')'));
+  return d;
+}
+
+/* ---------- login flow ---------- */
+$('#lf').onsubmit = async e => {
+  e.preventDefault();
+  const btn = $('#lbtn'), err = $('#lerr');
+  err.classList.remove('show');
+  busy(btn, true);
+  try {
+    await api('login', { username: $('#lu').value.trim(), password: $('#lp').value });
+    showPanel();
+  } catch (e2) {
+    err.textContent = e2.message; err.classList.add('show');
+    busy(btn, false, 'Sign In');
+  }
+};
+$('#logoutBtn').onclick = async () => {
+  try { await api('logout', {}); } catch (e) {}
+  location.reload();
+};
+function showPanel() {
+  $('#loginView').classList.add('hide');
+  $('#panelView').classList.remove('hide');
+  boot();
+}
+(async function initial() {
+  try { const d = await api('status', null, 'GET'); if (d.logged_in) { showPanel(); return; } } catch (e) {}
+})();
+
+/* ---------- modal helper ---------- */
+function closeModal() { const bg = $('#modalBg'); if (bg) bg.remove(); }
+function openModal(html) {
+  closeModal();
+  const bg = document.createElement('div'); bg.id = 'modalBg'; bg.className = 'modal-bg';
+  bg.innerHTML = '<div class="modal-card"><button class="modal-x" id="modalX" type="button">&times;</button>' + html + '</div>';
+  bg.onclick = e => { if (e.target === bg) closeModal(); };
+  document.body.appendChild(bg);
+  requestAnimationFrame(() => bg.classList.add('on'));
+  $('#modalX').onclick = closeModal;
+  return bg;
+}
+function tag(cls, txt) { return '<span class="tag ' + cls + '">' + esc(txt) + '</span>'; }
+
+/* ---------- tabs ---------- */
+const ADM = { tab: 'overview' };
+
+async function admOverview(pane) {
+  pane.innerHTML = '<div class="load">Loading...</div>';
+  const d = await api('stats', null, 'GET');
+  const s = d.stats;
+  const mini = (k, v) => '<div class="mini-stat"><div class="k">' + k + '</div><div class="v">' + v + '</div></div>';
+  pane.innerHTML = (s.free_for_all ? '<div class="card" style="background:#dcfce7;border-color:#bbf7d0"><b style="color:#15803d">FREE TRIAL ON</b> &mdash; everyone currently has free access. Go to the Settings tab to turn it off.</div>' : '') +
+    '<div class="stat-grid">' +
+    mini('Total Users', s.total_users) + mini('Active Subscriptions', s.active_subscriptions) +
+    mini('Active Plans', s.active_plans) + mini('Plan Revenue (All-Time)', inr(s.plan_revenue_total)) +
+    mini('Plan Revenue Today', inr(s.plan_revenue_today)) + mini('Gateway Revenue (All-Time)', inr(s.gateway_revenue_total)) +
+    mini('Orders Today', s.plan_orders_today) + mini('Pending Orders (1h)', s.pending_orders) +
+    mini('Signups Today', s.today_signups) + '</div>';
+}
+
+async function admPlans(pane) {
+  pane.innerHTML = '<div class="load">Loading...</div>';
+  const d = await api('plans', null, 'GET');
+  function planForm(p) {
+    p = p || {};
+    return '<form id="pfm" novalidate><input type="hidden" id="pfId" value="' + (p.id || '') + '">' +
+      '<label>Plan Name</label><input class="inp" id="pfName" value="' + esc(p.name || '') + '" placeholder="e.g. Pro Monthly">' +
+      '<div class="form-grid"><div><label>Price (&#8377;)</label><input class="inp" id="pfPrice" inputmode="decimal" value="' + (p.price != null ? p.price : '') + '"></div>' +
+      '<div><label>Duration (days)</label><input class="inp" id="pfDays" inputmode="numeric" value="' + (p.duration_days || 30) + '"></div></div>' +
+      '<details style="margin-top:14px"><summary style="cursor:pointer;font-weight:700;font-size:13px;color:#64748b">Advanced limits (optional - 0 = unlimited, leave as is)</summary>' +
+      '<div class="form-grid"><div><label>Payment Links limit</label><input class="inp" id="pfLinks" inputmode="numeric" value="' + (p.link_limit || 0) + '"></div>' +
+      '<div><label>Transactions limit</label><input class="inp" id="pfTxn" inputmode="numeric" value="' + (p.transaction_limit || 0) + '"></div></div>' +
+      '<div class="form-grid"><div><label>API Orders limit</label><input class="inp" id="pfApi" inputmode="numeric" value="' + (p.api_order_limit || 0) + '"></div>' +
+      '<div><label>Max amount / payment (&#8377;)</label><input class="inp" id="pfMax" inputmode="numeric" value="' + (p.max_amount || 0) + '"></div></div>' +
+      '</details><label>Features (one feature per line)</label><textarea class="inp" id="pfFeats" rows="4">' + esc((p.features || []).join('\n')) + '</textarea>' +
+      '<div class="swrap"><button type="button" class="switch' + (p.active === false ? '' : ' on') + '" id="pfActive"></button><span>Active (visible to users)</span></div>' +
+      '<button class="btn" type="submit">' + (p.id ? 'Update Plan' : 'Create Plan') + '</button></form>';
+  }
+  function row(p) {
+    return '<tr><td><b>' + esc(p.name) + '</b></td><td>' + inr(p.price) + '</td><td>' + p.duration_days + 'd</td>' +
+      '<td style="font-size:12.5px;line-height:1.5">Links: ' + (p.link_limit || '&infin;') + '<br>Txns: ' + (p.transaction_limit || '&infin;') + '</td>' +
+      '<td>' + (p.active ? tag('tag-active', 'Active') : tag('tag-inactive', 'Inactive')) + '</td>' +
+      '<td class="irow"><button class="btn tiny soft" data-edit="' + p.id + '" type="button">Edit</button>' +
+      '<button class="btn tiny danger" data-del="' + p.id + '" type="button">Delete</button></td></tr>';
+  }
+  pane.innerHTML = '<div class="card"><div class="row"><h2 style="font-size:19px">Plans</h2>' +
+    '<button class="btn tiny" id="pNew" type="button">+ New Plan</button></div></div>' +
+    '<div class="card flush tbl-wrap"><table class="dtable"><thead><tr><th>Name</th><th>Price</th><th>Duration</th><th>Limits</th><th>Status</th><th></th></tr></thead>' +
+    '<tbody>' + (d.plans.length ? d.plans.map(row).join('') : '<tr><td colspan="6" class="empty">No plans yet. Create one!</td></tr>') + '</tbody></table></div>';
+  function openForm(p) {
+    openModal('<h2 style="margin:0 0 14px">' + (p && p.id ? 'Edit Plan' : 'New Plan') + '</h2>' + planForm(p));
+    const sw = $('#pfActive'); sw.onclick = () => sw.classList.toggle('on');
+    $('#pfm').onsubmit = async e => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type=submit]'); busy(btn, true);
+      try {
+        await api('plan_save', {
+          id: $('#pfId').value || undefined, name: $('#pfName').value.trim(),
+          price: $('#pfPrice').value, duration_days: $('#pfDays').value,
+          link_limit: $('#pfLinks').value, transaction_limit: $('#pfTxn').value,
+          api_order_limit: $('#pfApi').value, max_amount: $('#pfMax').value,
+          features: $('#pfFeats').value, active: sw.classList.contains('on')
+        });
+        toast('Plan saved.'); closeModal(); admPlans(pane);
+      } catch (err) { toast(err.message, true); busy(btn, false, (p && p.id) ? 'Update Plan' : 'Create Plan'); }
+    };
+  }
+  $('#pNew').onclick = () => openForm(null);
+  pane.onclick = e => {
+    const eb = e.target.closest('[data-edit]'); const db_ = e.target.closest('[data-del]');
+    if (eb) { const p = d.plans.find(x => x.id == eb.dataset.edit); openForm(p); }
+    if (db_) {
+      if (!confirm('Delete this plan? Existing subscribers keep their access till expiry.')) return;
+      api('plan_delete', { id: db_.dataset.del }).then(() => { toast('Plan deleted.'); admPlans(pane); }).catch(x => toast(x.message, true));
+    }
+  };
+}
+
+async function admUsers(pane) {
+  pane.innerHTML = '<div class="searchbar"><input class="inp" id="uq" placeholder="Search name or email..."></div><div id="utbl" class="card flush tbl-wrap"></div>';
+  async function load() {
+    const d = await api('users', null, 'GET');
+    const q = $('#uq').value.trim().toLowerCase();
+    const filtered = q ? d.users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) : d.users;
+    $('#utbl').innerHTML = '<table class="dtable"><thead><tr><th>User</th><th>Plan</th><th>Status</th><th>Joined</th><th></th></tr></thead><tbody>' +
+      (filtered.length ? filtered.map(u => '<tr><td><b>' + esc(u.name) + '</b><div class="muted" style="font-size:13px">' + esc(u.email) + '</div></td>' +
+        '<td>' + esc(u.plan_name || '-') + '</td>' +
+        '<td>' + (u.active ? tag('tag-active', 'Active') : tag('tag-inactive', 'Inactive')) + ' ' +
+        (u.is_admin ? tag('tag-admin', 'Admin') : '') + ' ' + (u.banned ? tag('tag-banned', 'Banned') : '') + '</td>' +
+        '<td class="muted" style="font-size:13px">' + esc(when(u.created)) + '</td>' +
+        '<td class="irow"><button class="btn tiny soft" data-ext="' + u.id + '" type="button">+Days</button>' +
+        (u.active ? '<button class="btn tiny soft" data-rev="' + u.id + '" type="button">Revoke</button>' : '') +
+        '<button class="btn tiny soft" data-adm="' + u.id + '" data-v="' + (u.is_admin ? 0 : 1) + '" type="button">' + (u.is_admin ? 'Unadmin' : 'Make Admin') + '</button>' +
+        '<button class="btn tiny' + (u.banned ? '' : ' danger') + '" data-ban="' + u.id + '" data-v="' + (u.banned ? 0 : 1) + '" type="button">' + (u.banned ? 'Unban' : 'Ban') + '</button>' +
+        '<button class="btn tiny danger" data-del="' + u.id + '" type="button">Delete</button></td></tr>').join('')
+        : '<tr><td colspan="5" class="empty">No users found.</td></tr>') + '</tbody></table>';
+  }
+  $('#uq').oninput = () => { clearTimeout(window.__uqT); window.__uqT = setTimeout(() => load().catch(x => toast(x.message, true)), 250); };
+  $('#utbl').onclick = e => {
+    const rev = e.target.closest('[data-rev]');
+    if (rev) { if (confirm('Revoke this user\'s premium immediately?')) api('user_set', { user_id: rev.dataset.rev, revoke: true }).then(() => { toast('Premium revoked.'); load(); }).catch(x => toast(x.message, true)); return; }
+    const ext = e.target.closest('[data-ext]'), adm_ = e.target.closest('[data-adm]'), ban = e.target.closest('[data-ban]'), del = e.target.closest('[data-del]');
+    if (ext) { const days = prompt('How many days to add?', '30'); if (days) api('user_set', { user_id: ext.dataset.ext, extend_days: days }).then(() => { toast('Extended.'); load(); }).catch(x => toast(x.message, true)); }
+    if (adm_) api('user_set', { user_id: adm_.dataset.adm, is_admin: adm_.dataset.v === '1' }).then(() => { toast('Updated.'); load(); }).catch(x => toast(x.message, true));
+    if (ban) api('user_set', { user_id: ban.dataset.ban, banned: ban.dataset.v === '1' }).then(() => { toast('Updated.'); load(); }).catch(x => toast(x.message, true));
+    if (del) { if (confirm('Permanently delete this user?')) api('user_delete', { user_id: del.dataset.del }).then(() => { toast('Deleted.'); load(); }).catch(x => toast(x.message, true)); }
+  };
+  await load();
+}
+
+async function admOrders(pane) {
+  pane.innerHTML = '<div class="load">Loading...</div>';
+  const d = await api('orders', null, 'GET');
+  pane.innerHTML = '<div class="card flush tbl-wrap"><table class="dtable"><thead><tr><th>User</th><th>Plan</th><th>Amount</th><th>Status</th><th>UTR</th><th>Date</th></tr></thead><tbody>' +
+    (d.orders.length ? d.orders.map(o => '<tr><td>' + esc(o.user_email || '-') + '</td><td>' + esc(o.plan_name || '-') + '</td><td>' + inr(o.amount) + '</td>' +
+      '<td><span class="badge b-' + esc(o.status) + '">' + esc(o.status) + '</span></td><td style="font-size:13px">' + esc(o.utr || '-') + '</td>' +
+      '<td class="muted" style="font-size:13px">' + esc(when(o.created)) + '</td></tr>').join('') : '<tr><td colspan="6" class="empty">No orders yet.</td></tr>') + '</tbody></table></div>';
+}
+
+async function admSettings(pane) {
+  pane.innerHTML = '<div class="load">Loading...</div>';
+  const d = (await api('settings_get', null, 'GET')).settings;
+  const origin = location.origin;
+  pane.innerHTML =
+    '<div class="card"><h2 style="font-size:19px">Free Trial &mdash; Free Access for Everyone</h2>' +
+    '<div class="muted">As soon as this is ON, all users (existing + new) get Integrations and the API Key without a plan. You can turn it off whenever you want.</div>' +
+    '<span class="pill' + (d.free_for_all ? ' ok' : '') + '" style="margin-top:12px"><i></i>' + (d.free_for_all ? 'FREE ON' + (d.free_until ? ' (till ' + esc(when(d.free_until)) + ')' : ' (until you turn it off)') : 'OFF - plan holders only') + '</span>' +
+    '<label>For how long?</label><select class="inp" id="fHrs"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>24 hours</option><option value="72">3 days</option><option value="168">7 days</option><option value="0">Until I turn it off</option></select>' +
+    '<div class="row" style="gap:10px;margin-top:16px"><button class="btn" id="fOn" type="button">Give Everyone Free Access</button>' + (d.free_for_all ? '<button class="btn danger" id="fOff" type="button">Turn Free Access Off</button>' : '') + '</div></div>' +
+    '<div class="card"><h2 style="font-size:19px">Give Everyone N Days of Premium</h2>' +
+    '<div class="muted">Days are added to the plans of all users (they will still expire automatically afterwards).</div>' +
+    '<div class="form-grid"><div><label>How many days</label><input class="inp" id="gDays" inputmode="decimal" value="7"></div>' +
+    '<div><label>Who</label><select class="inp" id="gWho"><option value="all">All users</option><option value="inactive">Only users without a plan</option></select></div></div>' +
+    '<button class="btn" id="gGo" type="button" style="margin-top:16px">Add Days</button></div>' +
+    '<div class="card"><h2 style="font-size:19px">Payment Gateway (Plans)</h2>' +
+    '<div class="muted">Plans/subscription payments are auto-verified with this API key through your Railway FamApp API (/api.php).</div>' +
+    '<span class="pill' + (d.famgateway_api_key_set ? ' ok' : '') + '" style="margin-top:12px"><i></i>' + (d.famgateway_api_key_set ? 'Connected (' + esc(d.famgateway_api_key_masked) + ')' : 'Not Configured') + '</span>' +
+    '<label>Gateway URL (your Railway API)</label><input class="inp" id="sUrl" value="' + esc(d.gateway_base_url || '') + '" placeholder="https://xxxx.up.railway.app">' +
+    '<label>Gateway API Key</label><input class="inp" id="sKey" placeholder="fam_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">' +
+    '<p class="hint">Your FamApp API key (fam_...). If left empty, the existing key is kept.</p>' +
+    '<label>Site Name</label><input class="inp" id="sName" value="' + esc(d.site_name) + '">' +
+    '<button class="btn" id="sSave" type="button" style="margin-top:20px">Save Settings</button></div>';
+  $('#fOn').onclick = async () => { const b = $('#fOn'); busy(b, true); try { const r = await api('free_set', { on: true, hours: $('#fHrs').value }); toast(r.message); admSettings(pane); } catch (e) { toast(e.message, true); busy(b, false); } };
+  if ($('#fOff')) $('#fOff').onclick = async () => { try { const r = await api('free_set', { on: false }); toast(r.message); admSettings(pane); } catch (e) { toast(e.message, true); } };
+  $('#gGo').onclick = async () => {
+    if (!confirm($('#gDays').value + ' days to everyone?')) return;
+    const b = $('#gGo'); busy(b, true);
+    try { const r = await api('grant_all', { days: $('#gDays').value, only_inactive: $('#gWho').value === 'inactive' }); toast(r.message); } catch (e) { toast(e.message, true); }
+    busy(b, false, 'Add Days');
+  };
+  $('#sSave').onclick = async () => {
+    const btn = $('#sSave'); busy(btn, true);
+    try { await api('settings_save', { famgateway_api_key: $('#sKey').value.trim(), gateway_base_url: $('#sUrl').value.trim(), site_name: $('#sName').value.trim() }); toast('Saved.'); admSettings(pane); }
+    catch (e) { toast(e.message, true); busy(btn, false, 'Save Settings'); }
+  };
+}
+
+function boot() {
+  const tabs = [['overview', 'Overview'], ['plans', 'Plans'], ['users', 'Users'], ['orders', 'Orders'], ['settings', 'Settings']];
+  const fns = { overview: admOverview, plans: admPlans, users: admUsers, orders: admOrders, settings: admSettings };
+  const pane = $('#aPane');
+  function renderTabs() {
+    $('#aTabs').innerHTML = tabs.map(t => '<button class="' + (t[0] === ADM.tab ? 'on' : '') + '" data-t="' + t[0] + '" type="button">' + t[1] + '</button>').join('');
+  }
+  async function switchTab(t) {
+    ADM.tab = t; renderTabs();
+    try { await fns[t](pane); } catch (e) { pane.innerHTML = '<div class="card"><div class="alert">' + esc(e.message) + '</div></div>'; }
+  }
+  $('#aTabs').onclick = e => { const b = e.target.closest('[data-t]'); if (b) switchTab(b.dataset.t); };
+  switchTab(ADM.tab);
+}
+</script>
+</body>
+</html>
