@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__SITE_NAME__ — Automated UPI Payment Gateway</title>
+<meta name="description" content="Zero-fee, automated FamPay UPI payment verification, plans, and a full admin panel. Connect Gmail, get an API key, start accepting payments in minutes.">
+<style>
+:root{--navy:#0a1225;--navy2:#111a33;--accent:#6366f1;--accent2:#8b5cf6;--ink:#0b1224;--mute:#64748b;--line:#e2e8f0;--ok:#16a34a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#070b18;color:#fff;
+line-height:1.5;overflow-x:hidden}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+svg{display:block}
+
+/* ---------- animated background ---------- */
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:
+radial-gradient(circle at 15% -10%,#1d2a5c 0%,transparent 45%),
+radial-gradient(circle at 110% 10%,#2a1b55 0%,transparent 40%),
+#070b18}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35}
+.b1{width:420px;height:420px;background:#6366f1;top:-120px;left:-100px;animation:drift1 22s ease-in-out infinite}
+.b2{width:360px;height:360px;background:#8b5cf6;top:40%;right:-120px;animation:drift2 26s ease-in-out infinite}
+.b3{width:300px;height:300px;background:#22c55e;bottom:-140px;left:30%;animation:drift3 24s ease-in-out infinite;opacity:.18}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,80px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,60px)}}
+@keyframes drift3{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-40px)}}
+.grid-overlay{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:46px 46px;
+mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,#000 40%,transparent 100%)}
+
+/* ---------- nav ---------- */
+header{position:sticky;top:0;z-index:40;backdrop-filter:blur(14px);background:rgba(7,11,24,.72);
+border-bottom:1px solid rgba(255,255,255,.07)}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:19px;text-decoration:none}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(99,102,241,.4)}
+.nav-links{display:none;gap:30px;font-weight:600;font-size:15px;color:#aab4d4}
+.nav-links a{text-decoration:none;transition:color .15s}
+.nav-links a:hover{color:#fff}
+@media(min-width:800px){.nav-links{display:flex}}
+.nav-cta{display:flex;gap:10px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:14px;
+font-weight:700;font-size:15px;padding:12px 20px;text-decoration:none;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;
+box-shadow:0 10px 26px rgba(99,102,241,.4)}
+.btn-primary:hover{box-shadow:0 14px 34px rgba(99,102,241,.55)}
+.btn-ghost{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.btn-lg{padding:16px 28px;font-size:17px;border-radius:16px}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:88px 0 70px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.3);
+color:#c7d2fe;font-size:13px;font-weight:700;padding:8px 16px;border-radius:999px;margin-bottom:24px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.2);animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{50%{opacity:.4}}
+h1{font-size:44px;line-height:1.12;letter-spacing:-1.2px;margin:0 0 20px;font-weight:900}
+@media(min-width:700px){h1{font-size:62px}}
+h1 .grad{background:linear-gradient(135deg,#a5b4fc,#f0abfc 60%,#fff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p.lead{color:#aab4d4;font-size:18px;max-width:620px;margin:0 auto 34px}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:54px}
+.trust{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;color:#8ea0c9;font-size:13.5px;font-weight:600}
+.trust span{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+padding:8px 14px;border-radius:999px}
+.trust svg{width:15px;height:15px;color:#4ade80}
+
+/* ---------- mock preview card ---------- */
+.preview{max-width:760px;margin:60px auto 0;position:relative}
+.preview-card{background:linear-gradient(165deg,#121a35,#0a1225);border:1px solid rgba(255,255,255,.1);
+border-radius:26px;padding:22px;box-shadow:0 40px 100px rgba(0,0,0,.55);position:relative;overflow:hidden}
+.preview-card::before{content:"";position:absolute;top:-80px;right:-80px;width:220px;height:220px;border-radius:50%;
+background:radial-gradient(circle,rgba(99,102,241,.25),transparent 70%)}
+.pv-row{display:flex;gap:10px;margin-bottom:18px}
+.pv-dot{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.15)}
+.pv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.pv-stat{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px}
+.pv-stat .k{font-size:11px;color:#8ea0c9;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.pv-stat .v{font-size:20px;font-weight:800;margin-top:6px}
+.pv-tx{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.035);
+border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:14px}
+.pv-tx .ok{color:#4ade80;font-weight:800}
+.pv-tx small{display:block;color:#8ea0c9;font-size:12px;margin-top:2px}
+
+/* ---------- sections ---------- */
+section{position:relative;padding:76px 0}
+.sec-head{text-align:center;max-width:620px;margin:0 auto 48px}
+.sec-tag{color:#a5b4fc;font-weight:800;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:10px}
+.sec-head h2{font-size:32px;letter-spacing:-.6px;margin:0 0 12px}
+@media(min-width:700px){.sec-head h2{font-size:38px}}
+.sec-head p{color:#aab4d4;font-size:16px}
+
+.feat-grid{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:700px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.feat-grid{grid-template-columns:repeat(3,1fr)}}
+.feat-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:26px;
+transition:transform .25s,border-color .25s,background .25s}
+.feat-card:hover{transform:translateY(-5px);border-color:rgba(99,102,241,.4);background:rgba(99,102,241,.06)}
+.feat-ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feat-card h3{margin:0 0 8px;font-size:18px}
+.feat-card p{margin:0;color:#aab4d4;font-size:14.5px}
+.c1{background:rgba(99,102,241,.16);color:#a5b4fc}.c2{background:rgba(236,72,153,.16);color:#f9a8d4}
+.c3{background:rgba(34,197,94,.16);color:#86efac}.c4{background:rgba(245,158,11,.16);color:#fcd34d}
+.c5{background:rgba(56,189,248,.16);color:#7dd3fc}.c6{background:rgba(139,92,246,.16);color:#c4b5fd}
+
+.steps{display:grid;grid-template-columns:1fr;gap:28px;counter-reset:st}
+@media(min-width:800px){.steps{grid-template-columns:repeat(3,1fr)}}
+.step{position:relative;padding-left:0}
+.step .n{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));
+display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin-bottom:16px;
+box-shadow:0 8px 20px rgba(99,102,241,.4)}
+.step h3{margin:0 0 8px;font-size:18px}
+.step p{color:#aab4d4;margin:0;font-size:14.5px}
+
+.cta-band{background:linear-gradient(135deg,#1b2355,#2a1b55);border-radius:30px;padding:56px 32px;text-align:center;
+border:1px solid rgba(255,255,255,.1);position:relative;overflow:hidden}
+.cta-band::before{content:"";position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:420px;height:300px;
+background:radial-gradient(circle,rgba(99,102,241,.35),transparent 70%)}
+.cta-band h2{font-size:30px;margin:0 0 12px;letter-spacing:-.5px}
+.cta-band p{color:#c7d2fe;margin:0 0 28px}
+
+footer{border-top:1px solid rgba(255,255,255,.08);padding:36px 0;color:#8ea0c9;font-size:14px}
+footer .frow{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+@media(min-width:700px){footer .frow{flex-direction:row;justify-content:space-between;text-align:left}}
+footer a{text-decoration:none;color:#c7d2fe;font-weight:600}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+.reveal.show{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid-overlay"></div></div>
+
+<header>
+  <div class="wrap"><nav>
+    <a class="brand" href="/">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1"/></svg></div>
+      __SITE_NAME__
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a><a href="#how">How it works</a><a href="#plans">Plans</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="/app">Sign In</a>
+      <a class="btn btn-primary" href="/app#register">Get Started</a>
+    </div>
+  </nav></div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <span class="eyebrow"><i></i>Zero platform fee &middot; Live auto-verification</span>
+    <h1>Automated UPI payments,<br><span class="grad">verified instantly.</span></h1>
+    <p class="lead">Connect your FamPay Gmail once and get a production-ready payment gateway: dynamic QR checkouts,
+    payment links, a developer API, and a full admin panel with plans and subscriptions &mdash; no manual reconciliation.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary btn-lg" href="/app#register">Get Started Free<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg></a>
+      <a class="btn btn-ghost btn-lg" href="/app">Sign In</a>
+    </div>
+    <div class="trust">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Instant Gmail verification</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Full admin control panel</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Plans &amp; subscriptions</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Developer REST API</span>
+    </div>
+
+    <div class="preview reveal">
+      <div class="preview-card">
+        <div class="pv-row"><div class="pv-dot"></div><div class="pv-dot"></div><div class="pv-dot"></div></div>
+        <div class="pv-grid">
+          <div class="pv-stat"><div class="k">Today</div><div class="v">&#8377;4,286</div></div>
+          <div class="pv-stat"><div class="k">This Month</div><div class="v">&#8377;58,940</div></div>
+          <div class="pv-stat"><div class="k">All Time</div><div class="v">&#8377;2.1L</div></div>
+        </div>
+        <div class="pv-tx"><div><div>Rahul Sharma</div><small>UTR 42098765XXXX</small></div><div class="ok">+&#8377;499.00</div></div>
+        <div class="pv-tx"><div><div>Priya Verma</div><small>UTR 42076543XXXX</small></div><div class="ok">+&#8377;99.00</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-tag">Features</div>
+      <h2>Everything a payment gateway needs</h2>
+      <p>Built specifically for FamPay UPI &mdash; automated, self-hosted, and fully under your control.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card reveal"><div class="feat-ic c1"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>Instant Auto-Verify</h3><p>Gmail IMAP scans your inbox for FamPay credit mails and matches UTR + amount in seconds &mdash; zero manual checking.</p></div>
+      <div class="feat-card reveal"><div class="feat-ic c2"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7M17 15v6M14 18h6"/></svg></div>
+        <h3>Payment Links &amp; QR</h3><p>Generate shareable checkout links or dynamic QR codes for any amount, with live status polling built in.</p></div>
+      <div class="feat-card reveal"><div class="feat-ic c3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
+        <h3>Developer REST API</h3><p>Create orders and verify payments from any backend, bot, or app with a simple API key.</p></div>
+      <div class="feat-card reveal"><div class="feat-ic c4"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Full Admin Panel</h3><p>Manage users, plans, orders, and settings from one dashboard &mdash; ban/extend users, add plans, track revenue.</p></div>
+      <div class="feat-card reveal"><div class="feat-ic c5"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4"/><path d="M10.5 12.5L20 3M16 7l3 3"/></svg></div>
+        <h3>Secure by Design</h3><p>App passwords are encrypted at rest, rate-limited endpoints, and origin-checked requests throughout.</p></div>
+      <div class="feat-card reveal"><div class="feat-ic c6"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1"/></svg></div>
+        <h3>Plans &amp; Subscriptions</h3><p>Sell your own plans with FamGateway-powered checkout &mdash; fully automatic payment verification.</p></div>
+    </div>
+  </section>
+
+  <section id="how" class="wrap">
+    <div class="sec-head reveal">
+      <div class="sec-tag">How it works</div>
+      <h2>Live in three steps</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="n">1</div><h3>Connect your Gmail</h3><p>Link your FamPay-registered Gmail with a 16-letter App Password &mdash; encrypted the moment it's saved.</p></div>
+      <div class="step reveal"><div class="n">2</div><h3>Get your API key</h3><p>A unique key activates instantly after verification. Use it to create orders and verify payments.</p></div>
+      <div class="step reveal"><div class="n">3</div><h3>Start accepting payments</h3><p>Share checkout links, embed QR codes, and watch verified transactions land in your dashboard in real time.</p></div>
+    </div>
+  </section>
+
+  <section id="plans" class="wrap">
+    <div class="cta-band reveal">
+      <h2>Ready to automate your payments?</h2>
+      <p>Create your free account and connect your FamPay Gmail in under two minutes.</p>
+      <a class="btn btn-primary btn-lg" href="/app#register">Get Started Free</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap frow">
+    <div>&copy; <span id="yr"></span> __SITE_NAME__. All rights reserved.</div>
+    <div>Support: <a href="https://t.me/__SUPPORT_TG__" target="_blank" rel="noopener">@__SUPPORT_TG__</a> &middot; <a href="/app">Sign In</a></div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+var io = new IntersectionObserver(function(entries){
+  entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('show'); io.unobserve(e.target); } });
+}, {threshold: .12});
+document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+</script>
+</body>
+</html>

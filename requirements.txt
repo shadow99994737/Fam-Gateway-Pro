@@ -1,0 +1,5 @@
+Flask>=3.0.0
+cryptography>=42.0.0
+werkzeug>=3.0.0
+gunicorn>=21.0.0
+qrcode[pil]>=7.4.2

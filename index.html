@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fam Pay</title>
+<style>
+:root{--navy:#0a1225;--navy2:#111a33;--accent:#6366f1;--accent2:#8b5cf6;--bg:#f0f4f9;--ink:#0b1224;--mute:#64748b;
+--line:#e2e8f0;--ok:#16a34a;--bad:#dc2626;--warn:#b45309}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45}
+[hidden]{display:none!important}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--accent)}
+svg{display:block}
+
+/* ---------- auth (premium) ---------- */
+#auth{min-height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:20px;
+background:radial-gradient(circle at 15% -10%,#1d2a5c 0%,transparent 45%),radial-gradient(circle at 110% 10%,#2a1b55 0%,transparent 40%),#070b18}
+.auth-blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.35;pointer-events:none}
+.auth-blob.b1{width:380px;height:380px;background:#6366f1;top:-100px;left:-90px;animation:aDrift1 20s ease-in-out infinite}
+.auth-blob.b2{width:340px;height:340px;background:#8b5cf6;bottom:-120px;right:-100px;animation:aDrift2 24s ease-in-out infinite}
+@keyframes aDrift1{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,60px)}}
+@keyframes aDrift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,-40px)}}
+.auth-brand{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:10px;
+font-weight:800;font-size:18px;color:#fff;margin-bottom:22px}
+.auth-brand .logo{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#8b5cf6,#6366f1);
+display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(99,102,241,.4)}
+.auth-card{position:relative;z-index:1;background:linear-gradient(165deg,rgba(18,26,53,.9),rgba(10,18,37,.92));
+backdrop-filter:blur(18px);border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);
+width:100%;max-width:420px;padding:32px 28px;color:#fff;animation:authIn .5s cubic-bezier(.22,1,.36,1)}
+@keyframes authIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.auth-card h1{margin:0 0 4px;font-size:28px;letter-spacing:-.5px;
+background:linear-gradient(135deg,#fff,#c7d2fe);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.auth-card .sub{color:#9aa6c9;margin:0 0 22px;font-size:14.5px}
+.auth-card label{color:#cbd5e1}
+.auth-card .inp{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.16);color:#fff;-webkit-text-fill-color:#fff;caret-color:#fff}
+.auth-card .inp::placeholder{color:#7d8bb3;-webkit-text-fill-color:#7d8bb3}
+.auth-card .inp:focus{border-color:#8b5cf6;background:rgba(255,255,255,.1)}
+.auth-card .inp:-webkit-autofill,.auth-card .inp:-webkit-autofill:focus{-webkit-text-fill-color:#fff;caret-color:#fff;
+-webkit-box-shadow:0 0 0 1000px #151f3f inset;box-shadow:0 0 0 1000px #151f3f inset;transition:background-color 9999s}
+.auth-card .inp-wrap .tg{background:rgba(255,255,255,.12);color:#e2e8f0}
+.tabs{display:flex;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:5px;margin-bottom:20px}
+.tabs button{flex:1;border:0;background:transparent;padding:11px;border-radius:12px;font-weight:600;color:#9aa6c9;cursor:pointer;transition:all .18s}
+.tabs button.on{background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;box-shadow:0 6px 16px rgba(99,102,241,.35)}
+#auth .foot-link{position:relative;z-index:1;text-align:center;color:#8ea0c9;font-size:13px;margin-top:20px}
+#auth .foot-link a{color:#c7d2fe;text-decoration:none;font-weight:700}
+
+/* ---------- shell ---------- */
+.top{position:sticky;top:0;z-index:30;background:var(--navy);height:70px;display:flex;align-items:center;
+justify-content:space-between;padding:0 16px;border-bottom:1px solid #16213d}
+.brand{display:flex;align-items:center;gap:14px;color:#fff;font-weight:700;font-size:22px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+display:flex;align-items:center;justify-content:center;color:#fff}
+.burger{width:50px;height:50px;border-radius:14px;border:0;background:#2a3142;color:#fff;display:flex;
+align-items:center;justify-content:center;cursor:pointer}
+#overlay{position:fixed;inset:0;z-index:40;background:rgba(15,23,42,.35);backdrop-filter:blur(6px);opacity:0;
+pointer-events:none;transition:.2s}
+#overlay.on{opacity:1;pointer-events:auto}
+#side{position:fixed;z-index:50;top:0;bottom:0;left:0;width:290px;background:var(--navy);display:flex;
+flex-direction:column;transform:translateX(-100%);transition:transform .22s ease}
+#side.on{transform:none}
+.side-head{padding:18px 16px;border-bottom:1px solid #16213d}
+.nav{padding:14px 14px;flex:1;overflow:auto}
+.nav a{display:flex;align-items:center;gap:16px;color:#aab4d4;text-decoration:none;padding:15px 18px;border-radius:16px;
+margin-bottom:6px;font-weight:600;font-size:18px}
+.nav a.on{background:var(--accent);color:#fff;box-shadow:0 8px 24px rgba(99,102,241,.35)}
+.side-foot{padding:14px 16px;border-top:1px solid #16213d;display:flex;align-items:center;gap:12px;color:#fff}
+.user-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));
+display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;flex:none}
+.uinfo{flex:1;min-width:0}
+.uinfo .name{font-weight:700;font-size:17px}
+.uinfo .email{color:#94a3b8;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lo{background:none;border:0;color:#cbd5e1;cursor:pointer;padding:6px}
+main{padding:16px;max-width:900px;margin:0 auto;padding-bottom:110px}
+@media(min-width:1000px){
+ #side{transform:none}.burger,#overlay{display:none}
+ .top{padding-left:306px}.brand{display:none}
+ main{margin-left:290px;max-width:none;padding:24px 32px 110px}
+ main>*{max-width:860px}
+}
+
+/* ---------- cards / forms ---------- */
+.card{background:#fff;border-radius:24px;border:1px solid #e8eef6;box-shadow:0 6px 24px rgba(15,23,42,.05);
+padding:22px;margin-bottom:14px}
+.card.flush{padding:0;overflow:hidden}
+.card h2{margin:0 0 4px;font-size:25px;letter-spacing:-.4px}
+.card h3{margin:20px 0 10px;font-size:21px}
+.muted{color:var(--mute)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hd{padding:18px 22px;border-bottom:1px solid var(--line)}
+.hd h2{margin:0;font-size:22px}
+label{display:block;font-weight:700;margin:16px 0 8px;font-size:16px}
+.lab-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.lab-row small{color:var(--mute);font-weight:500}
+.inp{width:100%;border:2px solid #e3eaf4;border-radius:18px;background:#fff;padding:15px 16px;font-size:17px;outline:none}
+.inp{color:var(--ink)}
+.inp:focus{border-color:var(--accent)}
+.inp-wrap{position:relative}
+.inp-wrap .inp{padding-right:90px}
+.inp-wrap .tg{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:0;background:#f1f5f9;
+color:#475569;font-weight:600;padding:9px 14px;border-radius:12px;cursor:pointer}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:18px;
+background:var(--accent);color:#fff;font-weight:700;font-size:18px;padding:16px;cursor:pointer;margin-top:18px}
+.btn:disabled{opacity:.6}
+.btn.soft{background:#eceffe;color:#4f46e5;margin-top:12px}
+.btn.danger{background:#fee2e2;color:#dc2626}
+.btn.line{background:#fff;color:var(--ink);border:2px solid #e3eaf4;width:auto;display:inline-flex;padding:10px 22px;
+margin:0;font-size:17px;border-radius:999px}
+.btn.sm{width:auto;display:inline-flex;margin:0;padding:10px 16px;font-size:15px;border-radius:12px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;background:#f1f5f9;
+border:1px solid var(--line);color:#475569;font-weight:700;font-size:16px;white-space:nowrap}
+.pill i{width:12px;height:12px;border-radius:50%;background:#64748b;display:inline-block}
+.pill.ok{background:#dcfce7;border-color:#bbf7d0;color:#15803d}.pill.ok i{background:#16a34a}
+.alert{border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;padding:16px 18px;border-radius:18px;margin:12px 0}
+.note{border:1px solid #fde68a;background:#fffbeb;color:#78350f;padding:14px 18px;border-radius:18px;margin:14px 0}
+.ibox{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:none}
+.c1{background:#eef0ff;color:#4f46e5}.c2{background:#e5f8ef;color:#16a34a}.c3{background:#fef3d6;color:#d97706}
+.hint{color:var(--mute);margin:8px 0 0;font-size:15px}
+
+/* stats */
+.stat .k{font-size:15px;font-weight:700;letter-spacing:.8px;color:#64748b}
+.stat .v{font-size:36px;font-weight:800;margin:12px 0 4px;letter-spacing:-1px}
+.stat .c{color:var(--mute);font-size:17px}
+
+/* lists */
+.empty{text-align:center;color:var(--mute);padding:48px 16px 56px;font-size:19px}
+.empty svg{margin:0 auto 14px;color:#cbd5e1}
+.tx{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 22px;border-top:1px solid var(--line)}
+.tx:first-child{border-top:0}
+.tx .a{font-weight:800;color:var(--ok);white-space:nowrap}
+.tx .n{font-weight:700}.tx .s{color:var(--mute);font-size:14px;word-break:break-all}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:14px 22px;border-bottom:1px solid var(--line)}
+.chip{border:2px solid #e3eaf4;background:#fff;border-radius:999px;padding:7px 16px;font-weight:600;cursor:pointer;color:#475569}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.badge{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700}
+.b-pending{background:#fef3c7;color:#92400e}.b-success{background:#dcfce7;color:#15803d}
+.b-expired{background:#e2e8f0;color:#475569}
+.link-item{padding:16px 22px;border-top:1px solid var(--line)}
+.link-item:first-child{border-top:0}
+.link-item .u{word-break:break-all;color:var(--mute);font-size:14px;margin:6px 0 10px}
+
+/* profile */
+.pf{text-align:center;padding:34px 20px}
+.pf .big{width:94px;height:94px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,var(--accent2),var(--accent));
+color:#fff;font-weight:800;font-size:46px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 28px rgba(99,102,241,.35)}
+.pf .n{font-size:26px;font-weight:800}.pf .e{color:var(--mute);font-size:18px}
+
+/* docs */
+.dt{display:grid;grid-template-columns:130px 1fr;gap:6px 16px;padding:13px 0;border-top:1px solid #eef2f7}
+.dt:first-of-type{border-top:0}
+.dt code.k{color:#4f46e5;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px;word-break:break-word}
+.dt .d{font-size:16px}
+.req{color:#d97706;font-weight:800;font-size:13px;margin-left:6px}
+.m{display:inline-block;background:#dcfce7;color:#15803d;font-weight:800;border-radius:10px;padding:5px 13px;margin-right:6px}
+code.i{font-family:ui-monospace,Menlo,Consolas,monospace;background:#f1f5f9;border-radius:6px;padding:1px 6px;font-size:.9em}
+.cb{position:relative;background:var(--navy);color:#e5e9f5;border-radius:20px;margin:10px 0 16px}
+.cb pre{margin:0;padding:20px;overflow-x:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14.5px;line-height:1.55}
+.cb .cp{position:absolute;right:12px;top:12px;border:0;background:#222c45;color:#fff;border-radius:10px;padding:7px 14px;
+font-weight:600;cursor:pointer}
+.st{display:flex;gap:14px;padding:14px 0;border-top:1px solid #eef2f7}
+.st:first-of-type{border-top:0}
+.st b.n{flex:none;width:38px;height:38px;border-radius:50%;background:#eef0ff;color:#4f46e5;display:flex;align-items:center;justify-content:center}
+.ec{display:grid;grid-template-columns:90px 1fr;padding:13px 0;border-top:1px solid #eef2f7}
+.ec:first-of-type{border-top:0}.ec span:first-child{color:#4f46e5;font-family:ui-monospace,Menlo,monospace}
+
+/* misc */
+.tg-fab{position:fixed;right:18px;bottom:22px;z-index:20;width:70px;height:70px;border-radius:50%;background:#2aabee;
+color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(42,171,238,.45)}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);z-index:90;background:#0f172a;
+color:#fff;padding:13px 20px;border-radius:14px;opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center}
+#toast.on{opacity:1;transform:translateX(-50%)}#toast.bad{background:#b91c1c}
+.load{text-align:center;color:var(--mute);padding:60px 0}
+.sp{display:inline-block;width:18px;height:18px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;
+animation:r .7s linear infinite}@keyframes r{to{transform:rotate(360deg)}}
+
+/* ---------- premium plans / pricing ---------- */
+.pricing-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:720px){.pricing-grid{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}}
+.plan-card{position:relative;background:#fff;border-radius:26px;border:1px solid #e8eef6;box-shadow:0 10px 30px rgba(15,23,42,.06);
+padding:26px 24px;overflow:hidden;transition:transform .25s ease,box-shadow .25s ease}
+.plan-card:hover{transform:translateY(-4px);box-shadow:0 20px 44px rgba(99,102,241,.18)}
+.plan-card.hot{border:2px solid var(--accent);box-shadow:0 18px 46px rgba(99,102,241,.28)}
+.plan-card.cur{border:2px solid var(--ok)}
+.plan-card::before{content:"";position:absolute;top:-60px;right:-60px;width:160px;height:160px;border-radius:50%;
+background:radial-gradient(circle,rgba(99,102,241,.16),transparent 70%)}
+.plan-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;
+font-size:12px;font-weight:800;padding:6px 12px;border-radius:999px;letter-spacing:.3px;box-shadow:0 6px 16px rgba(99,102,241,.4)}
+.plan-badge.cur{background:linear-gradient(135deg,#16a34a,#22c55e)}
+.plan-name{font-size:20px;font-weight:800;margin:0 0 6px}
+.plan-price{font-size:40px;font-weight:900;letter-spacing:-1px;margin:4px 0 2px;
+background:linear-gradient(135deg,var(--ink),#334155);-webkit-background-clip:text;background-clip:text}
+.plan-price span{font-size:15px;font-weight:700;color:var(--mute);-webkit-text-fill-color:var(--mute)}
+.plan-dur{color:var(--mute);font-size:14px;margin-bottom:16px}
+.plan-feats{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;gap:10px}
+.plan-feats li{display:flex;align-items:flex-start;gap:10px;font-size:15px;color:#334155}
+.plan-feats svg{flex:none;margin-top:1px;color:var(--ok)}
+
+/* ---------- checkout modal ---------- */
+.modal-bg{position:fixed;inset:0;z-index:100;background:rgba(5,8,20,.72);backdrop-filter:blur(8px);
+display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .2s}
+.modal-bg.on{opacity:1}
+.modal-card{width:100%;max-width:420px;background:linear-gradient(165deg,#121a35,#0a1225);border-radius:28px;
+border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 80px rgba(0,0,0,.5);padding:28px 24px;position:relative;
+color:#fff;max-height:92vh;overflow:auto;transform:scale(.94) translateY(10px);transition:transform .25s ease}
+.modal-bg.on .modal-card{transform:none}
+.modal-x{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;border:0;
+background:rgba(255,255,255,.08);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.co-head{text-align:center;margin-bottom:18px}
+.co-amt{font-size:38px;font-weight:900;letter-spacing:-1px;background:linear-gradient(135deg,#a5b4fc,#fff);
+-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.co-plan{color:#aab4d4;font-size:15px;margin-top:2px}
+.co-qr-wrap{background:#fff;border-radius:20px;padding:16px;display:flex;align-items:center;justify-content:center;
+box-shadow:0 0 0 6px rgba(99,102,241,.14),0 16px 40px rgba(99,102,241,.25);position:relative}
+.co-qr-wrap img{width:220px;height:220px;display:block;border-radius:8px}
+.co-scan{position:absolute;left:16px;right:16px;height:3px;background:linear-gradient(90deg,transparent,#6366f1,transparent);
+animation:scan 2.1s ease-in-out infinite}
+@keyframes scan{0%{top:16px}50%{top:calc(100% - 20px)}100%{top:16px}}
+.co-wait{display:flex;align-items:center;justify-content:center;gap:10px;color:#cbd5e1;font-size:14px;margin:16px 0 4px}
+.co-dot{width:8px;height:8px;border-radius:50%;background:#6366f1;animation:pulse 1.2s ease-in-out infinite}
+.co-dot:nth-child(2){animation-delay:.2s}.co-dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.25;transform:scale(.7)}40%{opacity:1;transform:scale(1)}}
+.co-timer{text-align:center;color:#94a3b8;font-size:13px;margin-top:10px;font-variant-numeric:tabular-nums}
+.co-upi{display:block;text-align:center;text-decoration:none;margin-top:16px;background:rgba(99,102,241,.18);
+color:#c7d2fe;border:1px solid rgba(99,102,241,.4);border-radius:16px;padding:13px;font-weight:700}
+
+/* ---------- success animation ---------- */
+.ok-wrap{text-align:center;padding:10px 0 4px;position:relative;overflow:visible}
+.ok-ring{width:96px;height:96px;margin:0 auto 18px;border-radius:50%;
+background:radial-gradient(circle,rgba(34,197,94,.22),transparent 70%);display:flex;align-items:center;justify-content:center;
+animation:ringPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes ringPop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+.ok-check{width:72px;height:72px}
+.ok-check circle{stroke:#22c55e;stroke-width:3;fill:none;stroke-dasharray:220;stroke-dashoffset:220;
+animation:circDraw .55s ease forwards}
+.ok-check path{stroke:#22c55e;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;
+stroke-dasharray:40;stroke-dashoffset:40;animation:checkDraw .35s .5s ease forwards}
+@keyframes circDraw{to{stroke-dashoffset:0}}
+@keyframes checkDraw{to{stroke-dashoffset:0}}
+.ok-title{font-size:23px;font-weight:800;margin:4px 0 4px;animation:fadeUp .4s .7s both}
+.ok-sub{color:#aab4d4;font-size:15px;animation:fadeUp .4s .8s both}
+.ok-amt{font-size:30px;font-weight:900;margin:14px 0 6px;color:#4ade80;animation:fadeUp .4s .85s both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.confetti-wrap{position:absolute;inset:-20px -20px auto -20px;height:200px;pointer-events:none;overflow:visible}
+.confetti{position:absolute;top:-10px;width:8px;height:14px;opacity:0;animation:confettiFall 1.5s ease-in forwards}
+@keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(220px) rotate(540deg)}}
+
+/* ---------- admin panel ---------- */
+.admin-tabs{display:flex;gap:6px;overflow-x:auto;padding:4px;background:#f1f5f9;border-radius:16px;margin-bottom:14px}
+.admin-tabs button{flex:none;border:0;background:transparent;padding:11px 18px;border-radius:12px;font-weight:700;
+color:#64748b;cursor:pointer;white-space:nowrap}
+.admin-tabs button.on{background:#fff;color:var(--accent);box-shadow:0 2px 8px rgba(15,23,42,.08)}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:720px){.stat-grid{grid-template-columns:repeat(3,1fr)}}
+.mini-stat{background:#fff;border-radius:20px;border:1px solid #e8eef6;padding:18px;box-shadow:0 6px 20px rgba(15,23,42,.05)}
+.mini-stat .k{color:var(--mute);font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.mini-stat .v{font-size:26px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
+.dtable{width:100%;border-collapse:collapse;font-size:14.5px}
+.dtable th{text-align:left;color:var(--mute);font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.3px;
+padding:10px 14px;border-bottom:2px solid var(--line);white-space:nowrap}
+.dtable td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.dtable tr:last-child td{border-bottom:0}
+.tbl-wrap{overflow-x:auto;border-radius:18px}
+.tag{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.tag-admin{background:#eef0ff;color:#4f46e5}.tag-banned{background:#fee2e2;color:#dc2626}
+.tag-active{background:#dcfce7;color:#15803d}.tag-inactive{background:#f1f5f9;color:#64748b}
+.irow{display:flex;gap:8px;flex-wrap:wrap}
+.btn.tiny{width:auto;padding:7px 13px;font-size:13px;margin:0;border-radius:10px}
+.searchbar{display:flex;gap:8px;margin-bottom:14px}
+.searchbar .inp{margin:0}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+.swrap{display:flex;align-items:center;gap:10px;margin:14px 0}
+.switch{width:46px;height:26px;border-radius:999px;background:#e2e8f0;position:relative;cursor:pointer;flex:none;border:0}
+.switch.on{background:var(--ok)}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;
+transition:transform .18s ease;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.switch.on::after{transform:translateX(20px)}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN / SIGNUP ============ -->
+<div id="auth" hidden>
+  <div class="auth-blob b1"></div><div class="auth-blob b2"></div>
+  <div style="position:relative;z-index:1;width:100%;max-width:420px">
+    <a class="auth-brand" href="/"><div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1"/></svg></div>Fam Pay</a>
+  <div class="auth-card">
+    <h1 id="aTitle">Welcome back</h1>
+    <p class="sub" id="aSub">Sign in to your dashboard</p>
+    <div class="tabs"><button id="tLogin" class="on" type="button">Sign In</button><button id="tSign" type="button">Create Account</button></div>
+    <form id="aForm" novalidate>
+      <div id="nameBox" hidden><label for="aName" style="margin-top:0">Full Name</label>
+        <input class="inp" id="aName" placeholder="Your full name" autocomplete="name"></div>
+      <label for="aEmail" id="emailLab" style="margin-top:0">Email</label>
+      <input class="inp" id="aEmail" type="email" placeholder="you@example.com" autocomplete="email">
+      <label for="aPass">Password</label>
+      <div class="inp-wrap"><input class="inp" id="aPass" type="password" placeholder="Enter your password" autocomplete="current-password">
+        <button class="tg" id="aPassTg" type="button">Show</button></div>
+      <button class="btn" id="aBtn" type="submit">Sign In</button>
+    </form>
+  </div>
+  <div class="foot-link">&larr; Back to <a href="/">homepage</a></div>
+  </div>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="brand"><div class="logo" id="logoTop"></div>Fam Pay</div>
+    <button class="burger" id="burger" aria-label="Menu"></button>
+  </header>
+  <div id="overlay"></div>
+  <aside id="side">
+    <div class="side-head"><div class="brand"><div class="logo" id="logoSide"></div>Fam Pay</div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot">
+      <div class="user-avatar">U</div>
+      <div class="uinfo"><div class="name">User</div><div class="email"></div></div>
+      <button class="lo" id="logout" aria-label="Logout"></button>
+    </div>
+  </aside>
+  <main id="view"></main>
+</div>
+
+<a class="tg-fab" id="tg" href="https://t.me/anujxcoder" target="_blank" rel="noopener" aria-label="Telegram"></a>
+<div id="toast"></div>
+
+<script>
+const IS_LOGGED_IN = false;
+const SUBSCRIPTION_AMOUNT = 99;
+
+/* ---------- helpers ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ORIGIN = location.origin;
+const ICONS = {
+  wallet:'<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',
+  file:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+  key:'<circle cx="7.5" cy="15.5" r="4"/><path d="M10.5 12.5L20 3M16 7l3 3"/>',
+  receipt:'<path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5z"/><path d="M9 8h6M9 12h6"/>',
+  book:'<path d="M6 3h12a1 1 0 0 1 1 1v16H7a2 2 0 0 1-2-2V4a1 1 0 0 1 1-1z"/><path d="M5 18a2 2 0 0 1 2-2h12"/>',
+  links:'<path d="M4 6h16M4 12h10M4 18h7M17 15v6M14 18h6"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  logout:'<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M16 8l4 4-4 4M20 12H9"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  send:'<path d="M21 3L3 11l7 3 3 7z"/><path d="M10 14l11-11"/>',
+  zap:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  arrow:'<path d="M7 17L17 7M9 7h8v8"/>',
+  list:'<path d="M4 8h4M4 16h4M11 8h9M11 16h9"/>'
+};
+function ic(n, sz, sw) {
+  return '<svg width="' + (sz || 22) + '" height="' + (sz || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 1.8) + '" stroke-linecap="round" stroke-linejoin="round">' + ICONS[n] + '</svg>';
+}
+const inr = n => '₹' + Number(n || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const when = iso => { if (!iso) return ''; const d = new Date(iso); return isNaN(d) ? iso : d.toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'}); };
+
+let toastT;
+function toast(msg, bad) {
+  const t = $('#toast'); t.textContent = msg; t.className = (bad ? 'bad ' : '') + 'on';
+  clearTimeout(toastT); toastT = setTimeout(() => { t.className = ''; }, 3200);
+}
+async function api(action, body, method, qs) {
+  method = method || 'POST';
+  const opt = {method: method, headers: {}, credentials: 'same-origin'};
+  if (method === 'POST') { opt.headers['Content-Type'] = 'application/json'; opt.body = JSON.stringify(body || {}); }
+  let r;
+  try { r = await fetch('/index.php?action=' + action + (qs ? '&' + qs : ''), opt); }
+  catch (e) { throw new Error('Network error. Please try again.'); }
+  let d = {};
+  try { d = await r.json(); } catch (e) {}
+  if (r.status === 401 && action !== 'login') { location.reload(); throw new Error('Please sign in again.'); }
+  if (!d.ok) throw new Error(d.error || 'Something went wrong.');
+  return d;
+}
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch (e2) {} t.remove();
+  }
+  toast('Copied');
+}
+function busy(btn, on, label) {
+  btn.disabled = on;
+  if (on) { btn.dataset.l = btn.innerHTML; btn.innerHTML = '<span class="sp"></span>'; }
+  else btn.innerHTML = label || btn.dataset.l;
+}
+
+/* ---------- auth ---------- */
+let mode = 'login';
+function setMode(m) {
+  mode = m;
+  const s = m === 'signup';
+  $('#nameBox').hidden = !s;
+  $('#emailLab').style.marginTop = s ? '' : '0';
+  $('#tLogin').className = s ? '' : 'on'; $('#tSign').className = s ? 'on' : '';
+  $('#aTitle').textContent = s ? 'Create account' : 'Welcome back';
+  $('#aSub').textContent = s ? 'Get started with Fam Pay' : 'Sign in to your dashboard';
+  $('#aPass').placeholder = s ? 'Minimum 6 characters' : 'Enter your password';
+  $('#aPass').autocomplete = s ? 'new-password' : 'current-password';
+  $('#aBtn').textContent = s ? 'Create Account' : 'Sign In';
+}
+function initAuth() {
+  $('#auth').hidden = false;
+  $('#tg').hidden = true;
+  setMode(location.hash === '#register' ? 'signup' : 'login');
+  $('#aPassTg').onclick = () => { const p = $('#aPass'), h = p.type === 'password'; p.type = h ? 'text' : 'password'; $('#aPassTg').textContent = h ? 'Hide' : 'Show'; };
+  $('#tLogin').onclick = () => setMode('login');
+  $('#tSign').onclick = () => setMode('signup');
+  $('#aForm').onsubmit = async e => {
+    e.preventDefault();
+    const btn = $('#aBtn'), label = btn.textContent;
+    const email = $('#aEmail').value.trim(), password = $('#aPass').value;
+    busy(btn, true);
+    try {
+      if (mode === 'signup') {
+        await api('signup', {name: $('#aName').value.trim(), email: email, password: password});
+        toast('Account created! Please sign in.'); setMode('login'); $('#aPass').value = '';
+      } else {
+        await api('login', {email: email, password: password});
+        location.hash = '#/dashboard'; location.reload();
+      }
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false, label);
+  };
+}
+
+/* ---------- shell ---------- */
+const NAV = [
+  ['dashboard', 'Dashboard', 'chart'], ['plans', 'Plans', 'zap'], ['integrations', 'Integrations', 'file'], ['apikey', 'API Key', 'key'],
+  ['transactions', 'Transactions', 'receipt'], ['apidocs', 'API Docs', 'book'],
+  ['links', 'Payment Links', 'links'], ['profile', 'Profile', 'user']
+];
+ICONS.shield = '<path d="M12 3l8 4v5c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/>';
+function side(open) { $('#side').classList.toggle('on', open); $('#overlay').classList.toggle('on', open); }
+function go(v) { if (location.hash === '#/' + v) route(); else location.hash = '#/' + v; }
+function initApp() {
+  $('#app').hidden = false;
+  $('#logoTop').innerHTML = ic('wallet', 24); $('#logoSide').innerHTML = ic('wallet', 24);
+  $('#burger').innerHTML = ic('menu', 26, 2.2);
+  $('#logout').innerHTML = ic('logout', 24);
+  $('#tg').innerHTML = ic('send', 32, 1.6);
+  $('#nav').innerHTML = NAV.map(n => '<a href="#/' + n[0] + '" data-v="' + n[0] + '">' + ic(n[2], 24) + '<span>' + n[1] + '</span></a>').join('');
+  $('#burger').onclick = () => side(true);
+  $('#overlay').onclick = () => side(false);
+  $('#nav').onclick = () => side(false);
+  $('#logout').onclick = async () => { try { await api('logout'); } catch (e) {} location.hash = ''; location.reload(); };
+  window.addEventListener('hashchange', route);
+  route();
+}
+async function route() {
+  let v = (location.hash.match(/^#\/(\w+)/) || [])[1];
+  if (!views[v]) v = 'dashboard';
+  document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === v));
+  const box = $('#view');
+  clearInterval(window.__poll); window.__poll = null;
+  if (window.PREMIUM === undefined) {
+    try { window.PREMIUM = (await api('sub_status')).user.subscription_status === 'active'; } catch (e) { window.PREMIUM = false; }
+  }
+  setNavLocks();
+  if (!window.PREMIUM && LOCKED_VIEWS.indexOf(v) >= 0) {
+    document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('on', a.dataset.v === 'plans'));
+    box.innerHTML = paywallHTML(v);
+    $('#pwGo').onclick = () => go('plans');
+    return;
+  }  // stop the previous page's auto-refresh
+  box.onclick = null;
+  box.innerHTML = '<div class="load">Loading...</div>';
+  window.scrollTo(0, 0);
+  try { await views[v](box); }
+  catch (e) { box.innerHTML = '<div class="card"><div class="alert">' + esc(e.message) + '</div></div>'; }
+}
+
+/* ---------- views ---------- */
+const views = {};
+
+/* ---------- premium lock ---------- */
+const LOCKED_VIEWS = ['integrations', 'apikey'];
+function setNavLocks() {
+  document.querySelectorAll('#nav a').forEach(a => {
+    const lock = !window.PREMIUM && LOCKED_VIEWS.indexOf(a.dataset.v) >= 0;
+    let b = a.querySelector('.lk');
+    if (lock && !b) { b = document.createElement('em'); b.className = 'lk'; b.textContent = 'LOCKED';
+      b.style.cssText = 'margin-left:auto;font-style:normal;font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px;background:rgba(239,68,68,.18);color:#fca5a5'; a.appendChild(b); }
+    if (!lock && b) b.remove();
+  });
+}
+function paywallHTML(v) {
+  return '<div class="card" style="text-align:center;padding:40px 24px"><div class="ibox c1" style="margin:0 auto 16px">' + ic('key', 28) + '</div>' +
+    '<h2 style="font-size:26px">Premium Plan Required</h2>' +
+    '<p class="muted" style="max-width:460px;margin:10px auto 0">Integrations (Gmail connect) and the API Key are available only with a Premium plan. Your API key will appear and become usable once you purchase a plan.</p>' +
+    '<button class="btn" id="pwGo" type="button" style="margin-top:22px">' + ic('zap', 20) + ' Plans dekho &amp; Premium lo</button></div>';
+}
+
+function txRows(list) {
+  return list.map(t => '<div class="tx"><div><div class="n">' + esc(t.sender_name || 'Unknown') + '</div><div class="s">UTR ' + esc(t.utr) +
+    ' &middot; ' + esc(when(t.payment_time_ist)) + '</div></div><div class="a">+' + inr(t.amount) + '</div></div>').join('');
+}
+const emptyTx = () => '<div class="empty">' + ic('receipt', 64, 1.5) + 'No transactions yet</div>';
+
+/* ---------- live dashboard ---------- */
+const DASH_CSS = '<style>.dg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}' +
+  '.dc{position:relative;overflow:hidden;background:#fff;border:1px solid #e8eef6;border-radius:22px;padding:18px;box-shadow:0 6px 24px rgba(15,23,42,.05)}' +
+  '.dc .k{font-size:12.5px;font-weight:800;letter-spacing:.9px;color:#64748b;max-width:60%}.dc .v{font-size:34px;font-weight:900;margin-top:22px;letter-spacing:-1px}' +
+  '.dc .bl{position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;opacity:.9}.dc .ib{position:absolute;right:14px;top:14px;width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff}' +
+  '.dc.b .bl{background:#e0e7ff}.dc.b .ib{background:#3b82f6}.dc.g .bl{background:#dcfce7}.dc.g .ib{background:#10b981}.dc.r .bl{background:#fee2e2}.dc.r .ib{background:#ef4444}' +
+  '.lg{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 4px}.lg button{display:flex;align-items:center;gap:8px;border:1px solid #dbe4f3;background:#f1f5ff;color:#1e40af;font-weight:800;font-size:16px;padding:11px 18px;border-radius:999px;cursor:pointer}' +
+  '.lg button.off{opacity:.4}.lg i{width:13px;height:13px;border-radius:50%;display:inline-block}' +
+  '.rg{display:inline-flex;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:16px;padding:5px;margin:12px 0}.rg button{border:0;background:transparent;padding:10px 20px;border-radius:12px;font-weight:800;color:#64748b;cursor:pointer;font-size:16px}.rg button.on{background:#fff;color:#2563eb;box-shadow:0 2px 8px rgba(15,23,42,.1)}' +
+  '.lv{display:inline-flex;align-items:center;gap:7px;background:#eef2ff;color:#4f46e5;font-weight:800;font-size:14px;padding:6px 12px;border-radius:999px;margin-left:10px}.lv i{width:9px;height:9px;border-radius:50%;background:#22c55e;animation:lvp 1.4s infinite}@keyframes lvp{50%{opacity:.3}}' +
+  '.cht{width:100%;height:auto;display:block}</style>';
+function dashChart(series, show) {
+  const W = 520, H = 330, L = 52, R = 40, T = 14, B = 52, pw = W - L - R, ph = H - T - B;
+  const maxRev = Math.max.apply(null, series.map(s => s.revenue).concat([100]));
+  const maxReq = Math.max.apply(null, series.map(s => s.requests).concat([4]));
+  const nice = (m, step) => Math.ceil(m / step) * step;
+  const rTop = maxRev <= 100 ? 100 : nice(maxRev, Math.pow(10, Math.floor(Math.log10(maxRev))) / 2 || 1);
+  const qTop = maxReq <= 4 ? 4 : Math.ceil(maxReq / 4) * 4;
+  const x = i => L + (series.length === 1 ? pw / 2 : i * pw / (series.length - 1));
+  let g = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = T + ph - i * ph / 4;
+    g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" stroke="#e5ebf5"/>' +
+      '<text x="' + (L - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="13" fill="#94a3b8">&#8377;' + Math.round(rTop * i / 4) + '</text>' +
+      '<text x="' + (W - R + 10) + '" y="' + (y + 4) + '" font-size="13" fill="#94a3b8">' + Math.round(qTop * i / 4) + '</text>';
+  }
+  const step = Math.ceil(series.length / 7);
+  series.forEach((s, i) => {
+    if (i % step && i !== series.length - 1) return;
+    const dt = new Date(s.date + 'T00:00:00'), lb = dt.toLocaleDateString('en-IN', {month: 'short', day: '2-digit'});
+    g += '<text transform="translate(' + x(i) + ',' + (H - B + 18) + ') rotate(-35)" text-anchor="end" font-size="13" fill="#94a3b8">' + lb + '</text>';
+  });
+  const line = (key, top, color) => {
+    const pts = series.map((s, i) => [x(i), T + ph - (s[key] / top) * ph]);
+    return '<polyline fill="none" stroke="' + color + '" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" points="' + pts.map(p => p.join(',')).join(' ') + '"/>' +
+      pts.map((p, i) => '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="5.5" fill="' + color + '"><title>' + series[i].date + ': ' + (key === 'revenue' ? '&#8377;' : '') + series[i][key] + '</title></circle>').join('');
+  };
+  if (show.requests) g += line('requests', qTop, '#8b5cf6');
+  if (show.revenue) g += line('revenue', rTop, '#2563eb');
+  const empty = series.every(s => !s.revenue && !s.requests);
+  if (empty) g += '<text x="' + W / 2 + '" y="' + (T + ph / 2 - 6) + '" text-anchor="middle" font-size="17" fill="#94a3b8">No activity yet</text><text x="' + W / 2 + '" y="' + (T + ph / 2 + 16) + '" text-anchor="middle" font-size="15" fill="#94a3b8">The chart will fill up as payments arrive</text>';
+  return '<svg class="cht" viewBox="0 0 ' + W + ' ' + H + '">' + g + '</svg>';
+}
+views.dashboard = async box => {
+  let days = 7; const show = {revenue: true, requests: true}; let last = null;
+  const hr = (new Date(Date.now() + 19800000 + new Date().getTimezoneOffset() * 60000)).getHours();
+  const greet = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  function paint() {
+    if (!last) return;
+    const st = last.stats;
+    const card = (k, v, cls, icn) => '<div class="dc ' + cls + '"><div class="bl"></div><div class="ib">' + ic(icn, 24) + '</div><div class="k">' + k + '</div><div class="v"' + (cls === 'g' && k === 'TOTAL REVENUE' ? ' style="color:#059669"' : '') + '>' + v + '</div></div>';
+    $('#dashBody').innerHTML = '<div class="dg">' + card('TOTAL REQUESTS', st.requests, 'b', 'chart') + card('SUCCESSFUL', st.successful, 'g', 'shield') +
+      card('FAILED / PENDING', st.failed, 'r', 'clock') + card('TOTAL REVENUE', inr(st.revenue), 'g', 'trend') + '</div>' +
+      '<div class="card"><h2 style="font-size:25px;display:flex;align-items:center;gap:10px">' + ic('trend', 26) + ' Activity &mdash; Last ' + days + ' Days</h2>' +
+      '<div class="muted">API requests and revenue over time</div>' +
+      '<div class="lg"><button data-s="revenue" class="' + (show.revenue ? '' : 'off') + '"><i style="background:#2563eb"></i>Revenue</button><button data-s="requests" class="' + (show.requests ? '' : 'off') + '"><i style="background:#8b5cf6"></i>Requests</button></div>' +
+      '<div class="rg">' + [7, 15, 30].map(n => '<button data-d="' + n + '" class="' + (n === days ? 'on' : '') + '">' + n + 'D</button>').join('') + '</div>' +
+      dashChart(last.series, show) + '</div>' +
+      '<div class="card flush"><div class="hd row"><h2 style="display:flex;align-items:center">Recent Transactions<span class="lv"><i></i>Live</span></h2><button class="btn line" id="va">View All</button></div>' +
+      (last.recent.length ? last.recent.map(t => '<div class="tx"><div><div class="n">' + esc(t.name) + '</div><div class="s">Ref ' + esc(t.ref) + ' &middot; ' + esc(when(t.time)) + '</div></div><div class="a">+' + inr(t.amount) + '</div></div>').join('') : emptyTx()) + '</div>';
+    $('#va').onclick = () => go('transactions');
+  }
+  async function load() { last = await api('dash', null, 'GET', 'days=' + days); $('#dashHi').innerHTML = greet + ', <span style="color:#7c3aed">' + esc(last.name) + '</span> &#128075;'; paint(); }
+  box.innerHTML = DASH_CSS + '<h1 id="dashHi" style="font-size:32px;margin:6px 4px 2px;letter-spacing:-.5px"></h1><div class="muted" style="margin:0 4px 16px">Here\'s what\'s happening with your API today.</div><div id="dashBody"></div>';
+  box.onclick = e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.d) { days = +b.dataset.d; load().catch(x => toast(x.message, true)); }
+    else if (b.dataset.s) { show[b.dataset.s] = !show[b.dataset.s]; paint(); }
+  };
+  await load();
+  window.__poll = setInterval(() => { if (location.hash === '#/dashboard' || !location.hash) load().catch(() => {}); }, 5000);  // live: har 5 sec
+};
+
+views.transactions = async box => {
+  let f = 'all';
+  box.innerHTML = '<div class="card flush"><div class="hd row"><h2>All Transactions</h2><button class="btn line" id="bk">Back</button></div>' +
+    '<div class="chips" id="chips"></div><div id="tl"></div></div>';
+  $('#bk').onclick = () => go('dashboard');
+  async function load() {
+    $('#chips').innerHTML = [['all', 'All'], ['today', 'Today'], ['week', '7 Days'], ['month', 'This Month']]
+      .map(c => '<button class="chip' + (c[0] === f ? ' on' : '') + '" data-f="' + c[0] + '">' + c[1] + '</button>').join('');
+    const d = await api('transactions', null, 'GET', 'filter=' + f);
+    $('#tl').innerHTML = (d.transactions.length ? '<div class="hd muted" style="border-top:0;padding:12px 22px">' + d.summary.c + ' payments &middot; ' +
+      inr(d.summary.t) + '</div>' + txRows(d.transactions) : emptyTx());
+  }
+  $('#chips').onclick = e => { const b = e.target.closest('.chip'); if (b) { f = b.dataset.f; load().catch(x => toast(x.message, true)); } };
+  await load();
+};
+
+views.integrations = async box => {
+  const [a, p] = await Promise.all([api('api_info'), api('profile_info')]);
+  const g = a.data, pr = p.profile;
+  box.innerHTML = '<div class="card"><div class="row" style="align-items:flex-start"><div><h2>Integrations</h2>' +
+    '<div class="muted">Connect your real Fam Pay Gmail for automated payment verification.</div></div>' +
+    '<span class="pill' + (g ? ' ok' : '') + '"><i></i>' + (g ? 'Connected' : 'Not Connected') + '</span></div>' +
+    '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0 0">' +
+    '<form id="f" novalidate>' +
+    '<label for="gm">Fam Pay-linked Gmail Address</label><input class="inp" id="gm" type="email" placeholder="your-fampay-email@gmail.com" value="' + esc(g ? g.gmail : '') + '">' +
+    '<div class="lab-row"><label for="up">Fam Pay UPI ID</label><small>Must end with @fam or @yesfam</small></div>' +
+    '<input class="inp" id="up" placeholder="username@fam" value="' + esc(pr.upi_id) + '" autocapitalize="off">' +
+    '<label for="mn">Merchant Name</label><input class="inp" id="mn" placeholder="Your real merchant name" value="' + esc(pr.merchant_name) + '">' +
+    '<div class="lab-row"><label for="pw">Google App Password (16-digit)</label><a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener" style="font-weight:700;text-decoration:none">Generate &#8599;</a></div>' +
+    '<div class="inp-wrap"><input class="inp" id="pw" type="password" placeholder="' + (g ? 'Leave empty to keep the saved one' : 'xxxx xxxx xxxx xxxx') + '" autocomplete="off" autocapitalize="off"><button class="tg" type="button" id="pt">Show</button></div>' +
+    '<p class="hint">Requires <a href="https://mail.google.com/mail/u/0/#settings/fwdandpop" target="_blank" rel="noopener">IMAP enabled</a> in Gmail. App Password is encrypted before it is stored.</p>' +
+    '<hr style="border:0;border-top:1px solid var(--line);margin:18px 0 0">' +
+    '<button class="btn" id="sv" type="submit">&#10003; Verify &amp; Connect</button></form>' +
+    (g ? '<button class="btn danger" id="dc" type="button">Disconnect Gmail</button>' : '') +
+    '<p style="margin:18px 0 0"><a href="#/dashboard" style="font-weight:700;text-decoration:none">&larr; Back to Dashboard</a></p></div>';
+  $('#pt').onclick = () => { const i = $('#pw'); const h = i.type === 'password'; i.type = h ? 'text' : 'password'; $('#pt').textContent = h ? 'Hide' : 'Show'; };
+  if ($('#dc')) $('#dc').onclick = async () => {
+    if (!confirm('Disconnect Gmail? Your API key will stop working.')) return;
+    try { await api('delete_key'); toast('Disconnected'); route(); } catch (e) { toast(e.message, true); }
+  };
+  $('#f').onsubmit = async e => {
+    e.preventDefault();
+    const gmail = $('#gm').value.trim().toLowerCase(), upi = $('#up').value.trim().toLowerCase(), name = $('#mn').value.trim(), pw = $('#pw').value.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(gmail)) return toast('Enter a valid Gmail address.', true);
+    if (!/@(fam|yesfam)$/.test(upi)) return toast('UPI ID must end with @fam or @yesfam.', true);
+    if (!name) return toast('Enter your merchant name.', true);
+    if (!g && !pw) return toast('Enter the 16-letter App Password.', true);
+    const btn = $('#sv'); busy(btn, true);
+    try {
+      if (pw || !g) await api('connect', {gmail: gmail, app_password: pw});
+      await api('profile_save', {upi_id: upi, merchant_name: name});
+      toast('Connected successfully.'); go('apikey');
+    } catch (err) { toast(err.message, true); busy(btn, false, '&#10003; Verify &amp; Connect'); }
+  };
+};
+
+views.apikey = async box => {
+  const a = await api('api_info'), g = a.data;
+  box.innerHTML = '<div class="card"><h2>Your API Key</h2>' +
+    (g ? '' : '<div class="alert">Connect and verify the real Fam Pay Gmail account first. A Fam_ API key is created only after successful IMAP authentication.</div>') +
+    '<p class="muted">Keep this key secret. Payments are recorded to your account using it.</p>' +
+    '<label style="margin-top:6px">API Key</label><div class="inp-wrap"><input class="inp" id="k" type="password" readonly value="' + esc(g ? g.api_key : '') + '"><button class="tg" id="kt" type="button">Show</button></div>' +
+    '<button class="btn soft" id="kc" type="button">Copy</button>' + (g ? '' : '<button class="btn" id="ci" type="button">Connect Gmail</button>') + '</div>' +
+    '<div class="card"><h2>API Endpoint</h2><label style="margin-top:12px">POST</label><div class="row" style="gap:10px"><input class="inp" id="ep" readonly style="font-family:ui-monospace,Menlo,monospace;font-size:15px" value="' + esc(ORIGIN) + '/api.php">' +
+    '<button class="btn soft sm" id="ec" type="button" style="margin:0;padding:15px 20px">Copy</button></div>' +
+    '<p class="muted">See the full example in <a href="#/apidocs"><b>API Docs</b></a>.</p></div>' +
+    '<div class="card"><h2>Regenerate Key</h2><p class="muted">If your key has leaked, generate a new one. The old key stops working immediately.</p>' +
+    '<button class="btn danger" id="rg" type="button" ' + (g ? '' : 'disabled') + '>Generate New Key</button></div>';
+  $('#kt').onclick = () => { const i = $('#k'); const h = i.type === 'password'; i.type = h ? 'text' : 'password'; $('#kt').textContent = h ? 'Hide' : 'Show'; };
+  $('#kc').onclick = () => { if (g) copy(g.api_key); else toast('No API key yet.', true); };
+  $('#ec').onclick = () => copy(ORIGIN + '/api.php');
+  if ($('#ci')) $('#ci').onclick = () => go('integrations');
+  $('#rg').onclick = async () => {
+    if (!confirm('Generate a new key? The old key stops working immediately.')) return;
+    try { await api('regen_key'); toast('New key generated.'); route(); } catch (e) { toast(e.message, true); }
+  };
+};
+
+views.links = async box => {
+  box.innerHTML = '<div class="card"><h2 style="font-size:30px">Payment Links</h2><div class="muted">Create and manage checkout URLs to share with your customers.</div></div>' +
+    '<div class="card"><div style="display:flex;gap:16px"><div class="ibox c1">' + ic('arrow', 22) + '</div><div><h2 style="font-size:21px">Generate Payment Link</h2>' +
+    '<div class="muted">Create an instant checkout link with auto-generated ID to share with your customers.</div></div></div>' +
+    '<form id="pf" novalidate><div style="height:18px"></div><input class="inp" id="am" inputmode="decimal" placeholder="&#8377; Amount (e.g. 499)" autocomplete="off">' +
+    '<div style="height:12px"></div><input class="inp" id="ru" inputmode="url" placeholder="Return Site URL (Continue will take the customer here) e.g. https://..." autocapitalize="off">' +
+    '<div style="height:12px"></div><select class="inp" id="ex"><option value="5">5 Mins</option><option value="10">10 Mins</option><option value="15" selected>15 Mins</option>' +
+    '<option value="30">30 Mins</option><option value="60">1 Hour</option><option value="1440">24 Hours</option></select>' +
+    '<button class="btn" id="gb" type="submit">' + ic('zap', 20) + ' Generate</button></form></div>' +
+    '<div class="card flush"><div style="display:flex;gap:16px;padding:22px 22px 8px"><div class="ibox c1">' + ic('list', 22) + '</div><div><h2 style="font-size:21px">My Payment Links</h2>' +
+    '<div class="muted">Manage your active and expired payment links.</div></div></div><div id="ll"></div></div>';
+  const seen = {};  // gateway_order_id -> last status (to show a toast when pending -> success)
+  async function list(first) {
+    const d = await api('pl_list');
+    if ($('#ll') === null) return;
+    d.links.forEach(l => {
+      if (!first && seen[l.gateway_order_id] === 'pending' && l.status === 'success') toast('Payment received: ' + inr(l.amount));
+      seen[l.gateway_order_id] = l.status;
+    });
+    $('#ll').innerHTML = d.links.length ? d.links.map(l => '<div class="link-item"><div class="row"><b style="font-size:19px">' + inr(l.amount) + '</b>' +
+      '<span class="badge b-' + esc(l.status) + '">' + (l.status === 'success' ? 'Payment received' : esc(l.status)) + '</span></div><div class="u">' + esc(l.checkout_url) +
+      (l.status === 'success' ? '<br>Paid ' + esc(l.paid_at || '') + ' &middot; UTR ' + esc(l.reference || '') : '') + '</div>' +
+      '<div class="row" style="justify-content:flex-start;gap:8px"><button class="btn soft sm" data-c="' + esc(l.checkout_url) + '">Copy</button>' +
+      '<a class="btn line sm" style="text-decoration:none" href="' + esc(l.checkout_url) + '" target="_blank" rel="noopener">Open</a>' +
+      '<span class="muted" style="font-size:13px">' + esc(when(l.created_at.replace(' ', 'T') + '+05:30')) + '</span></div></div>').join('')
+      : '<div class="empty" style="font-size:22px">No payment links yet.</div>';
+  }
+  $('#ll').onclick = e => { const b = e.target.closest('[data-c]'); if (b) copy(b.dataset.c); };
+  $('#pf').onsubmit = async e => {
+    e.preventDefault();
+    const btn = $('#gb'), amount = $('#am').value.replace(/[^\d.]/g, '');
+    if (!amount) return toast('Enter an amount.', true);
+    busy(btn, true);
+    try {
+      const d = await api('pl_create', {amount: amount, return_url: $('#ru').value.trim(), expiry_minutes: $('#ex').value});
+      await copy(d.link.checkout_url); $('#am').value = ''; await list(true);
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false, ic('zap', 20) + ' Generate');
+  };
+  await list(true);
+  // while this page is open, refresh status every 4 sec: the badge turns to "Payment received" as soon as payment arrives
+  window.__poll = setInterval(() => { if (!document.hidden) list().catch(() => {}); }, 4000);
+};
+
+views.profile = async box => {
+  const p = (await api('profile_info')).profile;
+  const pwf = (id, lab, ph) => '<label for="' + id + '">' + lab + '</label><div class="inp-wrap"><input class="inp" id="' + id + '" type="password" placeholder="' + ph +
+    '" autocomplete="off"><button class="tg" type="button" data-t="' + id + '">Show</button></div>';
+  box.innerHTML = '<div class="card pf"><div class="big">' + esc((p.name || 'U').charAt(0).toUpperCase()) + '</div><div class="n">' + esc(p.name) + '</div><div class="e">' + esc(p.email) + '</div></div>' +
+    '<div class="card"><h2>My UPI ID</h2><label for="up">UPI ID</label><input class="inp" id="up" placeholder="yourname@fam" value="' + esc(p.upi_id) + '" autocapitalize="off">' +
+    '<button class="btn" id="su" type="button">Save UPI</button></div>' +
+    '<div class="card"><h2>Change Password</h2><div class="muted">Enter your current password, then set a new password.</div>' +
+    pwf('p1', 'Current Password', 'Enter current password') + pwf('p2', 'New Password', 'Minimum 6 characters') + pwf('p3', 'Confirm New Password', 'Confirm new password') +
+    '<button class="btn" id="up2" type="button">Update Password</button></div>';
+  box.onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; const i = $('#' + b.dataset.t); const h = i.type === 'password'; i.type = h ? 'text' : 'password'; b.textContent = h ? 'Hide' : 'Show'; };
+  $('#su').onclick = async () => {
+    const upi = $('#up').value.trim().toLowerCase();
+    if (!/@(fam|yesfam)$/.test(upi)) return toast('UPI ID must end with @fam or @yesfam.', true);
+    const btn = $('#su'); busy(btn, true);
+    try { await api('profile_save', {upi_id: upi}); toast('UPI ID saved.'); } catch (e) { toast(e.message, true); }
+    busy(btn, false, 'Save UPI');
+  };
+  $('#up2').onclick = async () => {
+    const btn = $('#up2'); busy(btn, true);
+    try {
+      await api('change_password', {current_password: $('#p1').value, new_password: $('#p2').value, confirm_password: $('#p3').value});
+      toast('Password updated.'); ['p1', 'p2', 'p3'].forEach(i => { $('#' + i).value = ''; });
+    } catch (e) { toast(e.message, true); }
+    busy(btn, false, 'Update Password');
+  };
+};
+
+/* ---------- modal + confetti helpers ---------- */
+function closeModal() {
+  const bg = $('#modalBg'); if (!bg) return;
+  clearInterval(window.__coPoll); window.__coPoll = null;
+  bg.classList.remove('on');
+  setTimeout(() => bg.remove(), 180);
+}
+function openModal(innerHTML) {
+  closeModal();
+  const bg = document.createElement('div');
+  bg.id = 'modalBg'; bg.className = 'modal-bg';
+  bg.innerHTML = '<div class="modal-card"><button class="modal-x" id="modalX" type="button">&times;</button>' + innerHTML + '</div>';
+  bg.onclick = e => { if (e.target === bg) closeModal(); };
+  document.body.appendChild(bg);
+  requestAnimationFrame(() => bg.classList.add('on'));
+  $('#modalX').onclick = closeModal;
+  return bg;
+}
+function confettiBurst(container) {
+  const colors = ['#6366f1', '#8b5cf6', '#22c55e', '#f59e0b', '#ec4899', '#38bdf8'];
+  const wrap = document.createElement('div'); wrap.className = 'confetti-wrap';
+  for (let i = 0; i < 26; i++) {
+    const p = document.createElement('div'); p.className = 'confetti';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDelay = (Math.random() * 0.3) + 's';
+    p.style.transform = 'rotate(' + Math.floor(Math.random() * 360) + 'deg)';
+    wrap.appendChild(p);
+  }
+  container.prepend(wrap);
+  setTimeout(() => wrap.remove(), 2200);
+}
+function successHTML(title, sub, amount) {
+  return '<div class="ok-wrap"><div class="ok-ring">' +
+    '<svg class="ok-check" viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"/><path d="M15 27l7 7 15-15"/></svg></div>' +
+    '<div class="ok-title">' + esc(title) + '</div><div class="ok-sub">' + esc(sub) + '</div>' +
+    (amount ? '<div class="ok-amt">+' + inr(amount) + '</div>' : '') + '</div>';
+}
+
+/* ---------- plans + premium FamGateway checkout ---------- */
+function planLimitLines(p) {
+  const L = [], un = n => (n > 0 ? n : 'Unlimited');
+  L.push(un(p.link_limit) + ' payment links');
+  L.push(un(p.transaction_limit) + ' transactions');
+  if (p.api_order_limit > 0) L.push(p.api_order_limit + ' API orders');
+  if (p.max_amount > 0) L.push('Max ' + inr(p.max_amount) + ' per payment');
+  return L;
+}
+function usageHTML(p, u) {
+  if (!u) return '';
+  const row = (name, used, lim) => '<div style="margin-top:8px"><div class="row" style="font-size:14px"><span>' + name + '</span><b>' + used + ' / ' + (lim > 0 ? lim : '&infin;') + '</b></div>' +
+    (lim > 0 ? '<div style="height:6px;border-radius:99px;background:#e2e8f0;margin-top:5px;overflow:hidden"><div style="height:100%;width:' + Math.min(100, Math.round(used * 100 / lim)) + '%;background:' + (used >= lim ? '#dc2626' : '#6366f1') + '"></div></div>' : '') + '</div>';
+  return '<div class="plan-usage" style="margin-top:16px;padding-top:14px;border-top:1px solid #e2e8f0"><div class="muted" style="font-size:13px;font-weight:700">USAGE THIS CYCLE</div>' +
+    row('Payment links', u.links, p.link_limit) + row('Transactions', u.transactions, p.transaction_limit) +
+    (p.api_order_limit > 0 ? row('API orders', u.api_orders, p.api_order_limit) : '') + '</div>';
+}
+function planCard(p, curId, usage) {
+  const isCur = curId && p.id === curId;
+  const feats = planLimitLines(p).concat(p.features);
+  return '<div class="plan-card' + (isCur ? ' cur' : '') + '">' +
+    (isCur ? '<span class="plan-badge cur">Current Plan</span>' : '') +
+    '<div class="plan-name">' + esc(p.name) + '</div>' +
+    '<div class="plan-price">' + inr(p.price) + '<span>/' + p.duration_days + ' days</span></div>' +
+    '<ul class="plan-feats">' + feats.map(f => '<li>' + ic('zap', 17) + '<span>' + esc(f) + '</span></li>').join('') + '</ul>' +
+    (isCur ? usageHTML(p, usage) : '') +
+    '<button class="btn' + (isCur ? ' soft' : '') + '" data-buy="' + p.id + '" type="button">' + (isCur ? 'Renew / Extend' : 'Subscribe') + '</button></div>';
+}
+function openPlanCheckout(plan) {
+  openModal('<div class="co-head"><div class="co-plan">' + esc(plan.name) + '</div><div class="co-amt">' + inr(plan.price) + '</div></div>' +
+    '<div class="load"><span class="sp" style="border-color:rgba(99,102,241,.3);border-top-color:#6366f1"></span></div>');
+  api('plan_checkout', {plan_id: plan.id}).then(d => {
+    const o = d.order;
+    const bg = $('#modalBg'); if (!bg) return;
+    bg.querySelector('.modal-card').innerHTML = '<button class="modal-x" id="modalX" type="button">&times;</button>' +
+      '<div class="co-head"><div class="co-plan">' + esc(o.plan_name) + '</div><div class="co-amt">' + inr(o.amount) + '</div></div>' +
+      '<div class="co-qr-wrap"><div class="co-scan"></div><img src="' + esc(o.qr_url) + '" alt="Scan to pay"></div>' +
+      '<p class="muted" style="text-align:center;margin:10px 0 0;font-size:14px">Scan the QR code and pay exactly <b>' + inr(o.amount) + '</b> - your plan activates automatically as soon as the payment is received.</p>' +
+      '<div class="co-wait"><span class="co-dot"></span><span class="co-dot"></span><span class="co-dot"></span>Waiting for payment...</div>' +
+      '<div class="co-timer">Order ID: ' + esc(o.fg_order_id) + '</div>';
+    $('#modalX').onclick = closeModal;
+    let tries = 0;
+    window.__coPoll = setInterval(async () => {
+      if (!$('#modalBg')) { clearInterval(window.__coPoll); return; }
+      tries++;
+      try {
+        const s = await api('plan_status', {fg_order_id: o.fg_order_id});
+        if (s.status === 'success') {
+          clearInterval(window.__coPoll);
+          const card = $('#modalBg .modal-card');
+          window.PREMIUM = true; setNavLocks();
+          card.innerHTML = '<button class="modal-x" id="modalX" type="button">&times;</button>' +
+            successHTML('Payment Successful', (s.plan_name || plan.name) + ' activated', s.amount);
+          $('#modalX').onclick = () => { closeModal(); go('plans'); };
+          confettiBurst(card);
+          setTimeout(() => { closeModal(); if (location.hash === '#/plans') route(); else go('plans'); }, 2600);
+        } else if (s.status === 'expired') {
+          clearInterval(window.__coPoll);
+          toast('Payment link expired. Try again.', true);
+          closeModal();
+        }
+      } catch (e) { if (tries > 80) { clearInterval(window.__coPoll); } }
+    }, 3000);
+  }).catch(e => { toast(e.message, true); closeModal(); });
+}
+views.plans = async box => {
+  const d = await api('plans_list', null, 'GET');
+  const curId = d.current_plan ? d.current_plan.id : null;
+  box.innerHTML = '<div class="card"><h2 style="font-size:30px">Plans &amp; Pricing</h2>' +
+    '<div class="muted">Choose a plan for your account - payments are verified instantly and automatically through FamGateway.</div>' +
+    (d.free_trial ? '<span class="pill ok" style="margin-top:12px"><i></i>Free Trial ON' + (d.free_trial_until ? ' &mdash; till ' + esc(when(d.free_trial_until)) : '') + '</span>' : d.subscription_active ? '<span class="pill ok" style="margin-top:12px"><i></i>Active till ' + esc(when(d.subscription_end)) + '</span>' : '') + '</div>' +
+    (d.plans.length ? '<div class="pricing-grid">' + d.plans.map(p => planCard(p, curId, d.usage)).join('') + '</div>' :
+      '<div class="card"><div class="empty">' + ic('zap', 64, 1.5) + 'No plans are available right now.</div></div>');
+  box.onclick = e => {
+    const b = e.target.closest('[data-buy]'); if (!b) return;
+    const plan = d.plans.find(p => p.id == b.dataset.buy); if (plan) openPlanCheckout(plan);
+  };
+};
+
+/* ----- API docs ----- */
+function cb(lines) {
+  const t = lines.join('\n').split('ORIGIN').join(ORIGIN);
+  return '<div class="cb"><button class="cp" type="button">Copy</button><pre>' + esc(t) + '</pre></div>';
+}
+function dt(k, d, req) { return '<div class="dt"><code class="k">' + k + '</code><div class="d">' + d + (req ? '<span class="req">REQUIRED</span>' : '') + '</div></div>'; }
+
+views.apidocs = async box => {
+  const warn = t => '<div class="note">' + t + '</div>';
+  const step = (n, t) => '<div class="st"><b class="n">' + n + '</b><div>' + t + '</div></div>';
+  const ec = (c, t) => '<div class="ec"><span>' + c + '</span><span>' + t + '</span></div>';
+  box.innerHTML =
+    '<div class="card"><h2>Overview</h2><p><code class="i">' + esc(ORIGIN) + '/api.php</code></p>' +
+    '<p class="muted">All calls use <b>POST</b> (verify also works with GET). Form-data, x-www-form-urlencoded or JSON - all three are supported. Send your <a href="#/apikey">API Key</a> in the <code class="i">api_key</code> field, or in the <code class="i">X-API-Key</code> / <code class="i">Authorization: Bearer KEY</code> header. Choose the operation with the <code class="i">action</code> field.</p>' +
+    dt('create_order', 'Creates a new order + <b>checkout_url</b>') + dt('verify', 'Checks the order\'s payment (success / pending / expired)') +
+    '<p class="muted">Clean URLs also work: <code class="i">/api/create_order</code> and <code class="i">/api/verify</code>.</p></div>' +
+
+    '<div class="card"><h2>Auto Payment Flow</h2>' +
+    step(1, 'Call <b>create_order</b> (amount + your own order_id) - the response contains <code class="i">checkout_url</code>.') +
+    step(2, 'Send the user to <code class="i">checkout_url</code> (button / redirect). The user pays there by scanning the QR or with a UPI app.') +
+    step(3, 'As soon as the Gmail alert for the payment arrives, checkout shows <b>Payment Successful</b> and the user is sent back to your <code class="i">redirect_url</code>.') +
+    step(4, 'Call <b>verify</b> from your server. Complete the order / credit the balance only when <code class="i">status = success</code>.') +
+    warn('Always complete the order only after verifying from your server with <b>verify</b>. Do not trust the <code class="i">status=success</code> in the redirect URL alone, because anyone can open that URL.') + '</div>' +
+
+    '<div class="card"><h2>1. Create Order (Checkout URL)</h2><div><span class="m">POST</span><code class="i">action=create_order</code></div><div style="height:8px"></div>' +
+    dt('api_key', 'Your API key', 1) + dt('amount', 'In rupees, e.g. 499.50 (0.01 to 10000000)', 1) +
+    dt('order_id', 'Your own unique order ID (letters, numbers, - and _, max 40; must not start with <code class="i">fg_</code>). If left empty, the gateway ID is used') +
+    dt('redirect_url', 'The user is sent back here after payment (http/https). Alias: <code class="i">return_url</code>') +
+    dt('expiry_minutes', '1 to 1440. Default 15') + dt('payer', 'Customer name (max 60)') + dt('note', 'Optional note (max 120)') +
+    '<h3>Example (cURL)</h3>' +
+    cb(['curl -X POST ORIGIN/api.php \\', '  -d "action=create_order" \\', '  -d "api_key=YOUR_API_KEY" \\', '  -d "amount=499.50" \\', '  -d "order_id=ORDER1001" \\', '  -d "redirect_url=https://yoursite.com/thanks" \\', '  -d "expiry_minutes=15"']) +
+    '<h3>Response <span class="m" style="font-size:14px">200</span></h3>' +
+    cb(['{', '  "ok": true,', '  "existing": false,', '  "order_id": "ORDER1001",', '  "gateway_order_id": "fg_a1b2c3d4e5",', '  "amount": 499.5,', '  "currency": "INR",', '  "status": "pending",', '  "paid": false,', '  "checkout_url": "ORIGIN/pay/fg_a1b2c3d4e5",', '  "created_at": "2026-10-07 14:00:00",', '  "expires_at": "2026-10-07 14:15:00",', '  "expires_in": 900,', '  "verify_url": "ORIGIN/api.php?action=verify&order_id=ORDER1001"', '}']) +
+    dt('order_id', 'The order_id you sent (or the gateway ID if you did not send one)') + dt('gateway_order_id', 'Gateway ID (<code class="i">fg_xxx</code>). This is what the checkout page and Payment Links show') +
+    dt('checkout_url', 'Give this link to the user - the payment happens here') + dt('existing', 'If you send the same <code class="i">order_id</code> + same amount again, you get back <b>the same pending checkout</b> (no duplicate order is created), <code class="i">existing: true</code>') +
+    dt('amount', 'The amount always stays exactly what you sent (send 499.50 and it stays 499.50). If two pending orders have the same amount, the payment goes to the order whose checkout page is currently open (otherwise to the newest order).') + '</div>' +
+
+    '<div class="card"><h2>2. Verify Payment</h2><div><span class="m">POST</span><span class="m">GET</span><code class="i">action=verify</code></div><div style="height:8px"></div>' +
+    dt('api_key', 'Your API key', 1) + dt('order_id', 'Your <code class="i">order_id</code> or <code class="i">gateway_order_id</code> (<code class="i">fg_xxx</code>) - both work', 1) +
+    '<h3>Example (cURL)</h3>' + cb(['curl -X POST ORIGIN/api.php \\', '  -d "action=verify" \\', '  -d "api_key=YOUR_API_KEY" \\', '  -d "order_id=ORDER1001"']) +
+    '<h3>Response (paid) <span class="m" style="font-size:14px">200</span></h3>' +
+    cb(['{', '  "ok": true,', '  "order_id": "ORDER1001",', '  "gateway_order_id": "fg_a1b2c3d4e5",', '  "amount": 499.5,', '  "currency": "INR",', '  "status": "success",', '  "paid": true,', '  "checkout_url": "ORIGIN/pay/fg_a1b2c3d4e5",', '  "created_at": "2026-10-07 14:00:00",', '  "expires_at": "2026-10-07 14:15:00",', '  "expires_in": 0,', '  "paid_at": "2026-10-07 14:03:21",', '  "reference": "123456789012"', '}']) +
+    dt('status', '<b>success</b> = payment received &middot; <b>pending</b> = still waiting &middot; <b>expired</b> = time is up') +
+    dt('paid', '<code class="i">true</code> only when status is success') + dt('reference', 'UTR / reference number (success par)') +
+    warn('A verify call on a pending order searches Gmail directly for the payment (exact amount, only a credit mail that arrived after the link was created, one mail per order). While pending, call again every <b>3-5 seconds</b>; no need to go faster.') + '</div>' +
+
+    '<div class="card"><h2>Checkout &amp; Redirect</h2><p class="muted">The checkout page (<code class="i">/pay/fg_xxx</code>) shows a UPI QR and checks for payment by itself every 2 seconds. As soon as the payment is received, the user sees a Payment Successful card and, after 3 seconds, is sent to your <code class="i">redirect_url</code> with these query params:</p>' +
+    dt('status', 'success') + dt('order_id', 'Your order_id') + dt('gateway_order_id', 'fg_xxx') + dt('amount', 'Paid amount') + dt('reference', 'UTR / reference') + '</div>' +
+
+    '<div class="card"><h2>More Examples</h2><h3 style="margin-top:8px">JSON + header key</h3>' +
+    cb(['curl -X POST ORIGIN/api.php \\', '  -H "Content-Type: application/json" \\', '  -H "X-API-Key: YOUR_API_KEY" \\', '  -d \'{"action":"create_order","amount":499.50,"order_id":"ORDER1001","redirect_url":"https://yoursite.com/thanks"}\'']) +
+    '<h3>Python (create + verify loop)</h3>' +
+    cb(['import requests, time', '', 'API = "ORIGIN/api.php"', 'KEY = "YOUR_API_KEY"', '', '# 1) Create the order -> give checkout_url to the user', 'r = requests.post(API, data={', '    "action": "create_order", "api_key": KEY,', '    "amount": 499.50, "order_id": "ORDER1001",', '    "redirect_url": "https://yoursite.com/thanks",', '}, timeout=30).json()', 'print("Pay here:", r["checkout_url"])', '', '# 2) Verify the payment (every 3-5 sec, until expiry)', 'while True:', '    v = requests.post(API, data={"action": "verify", "api_key": KEY,', '                                 "order_id": "ORDER1001"}, timeout=30).json()', '    if v.get("status") == "success":', '        print("PAID", v["amount"], v["reference"])', '        break', '    if v.get("status") == "expired":', '        print("Expired")', '        break', '    time.sleep(4)']) +
+    '<h3>PHP</h3>' +
+    cb(['<?php', '$api = "ORIGIN/api.php";', '$key = "YOUR_API_KEY";', '', 'function fam($api, $fields) {', '    $ch = curl_init($api);', '    curl_setopt_array($ch, [CURLOPT_POST => true, CURLOPT_POSTFIELDS => $fields,', '                            CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 30]);', '    $res = json_decode(curl_exec($ch), true);', '    curl_close($ch);', '    return $res;', '}', '', '// 1) Create the order, send the user to checkout_url', '$o = fam($api, [\'action\' => \'create_order\', \'api_key\' => $key, \'amount\' => 499.50,', '                \'order_id\' => \'ORDER1001\', \'redirect_url\' => \'https://yoursite.com/thanks\']);', 'header(\'Location: \' . $o[\'checkout_url\']);', '', '// 2) Verify on the redirect/callback page', '$v = fam($api, [\'action\' => \'verify\', \'api_key\' => $key, \'order_id\' => \'ORDER1001\']);', 'if (($v[\'status\'] ?? \'\') === \'success\') { /* complete the order */ }']) + '</div>' +
+
+    '<div class="card"><h2>Error Codes</h2>' + ec('401', 'api_key missing or invalid') + ec('403', 'Subscription inactive, or Integration (Gmail / UPI / Merchant name) not connected') +
+    ec('404', 'verify: order not found for this api_key') + ec('405', 'use POST for create_order') + ec('409', 'order_id already paid / same order_id with a different amount') +
+    ec('422', 'amount / order_id / redirect_url / expiry_minutes is invalid') + ec('429', 'Too many requests - please wait a moment') +
+    '<p class="muted">Error response format: <code class="i">{"ok": false, "error": "..."}</code></p></div>';
+  box.onclick = e => { const b = e.target.closest('.cp'); if (b) copy(b.nextElementSibling.textContent); };
+};
+
+/* ---------- boot ---------- */
+if (IS_LOGGED_IN) initApp(); else initAuth();
+</script>
+</body>
+</html>
